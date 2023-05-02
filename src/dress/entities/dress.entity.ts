@@ -17,6 +17,7 @@ import {
   EmbroideryStatusEnum,
 } from '../enum';
 import { DyeStatusEnum } from '../enum/DyeStatusEnum';
+import { Embroider } from 'src/embroider/entities';
 
 @Entity()
 export class Dress {
@@ -41,7 +42,6 @@ export class Dress {
 
   @Column({
     type: 'enum',
-    nullable: true,
     enum: EmbroideryStatusEnum,
     default: EmbroideryStatusEnum.NotSent,
   })
@@ -100,4 +100,10 @@ export class Dress {
   @ManyToOne(() => Dayer, (dayer) => dayer.dress, { nullable: true })
   @JoinColumn()
   dayer: Dayer;
+
+  @ManyToOne(() => Embroider, (embroider) => embroider.dress, {
+    nullable: true,
+  })
+  @JoinColumn()
+  embroider: Embroider;
 }

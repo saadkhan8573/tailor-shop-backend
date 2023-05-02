@@ -21,8 +21,13 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { AuthUser } from 'src/decorators';
 import { DayerService } from 'src/dayer/dayer.service';
 import { Dress } from 'src/dress/entities/dress.entity';
-import { DressStatusEnum, DyeStatusEnum } from 'src/dress/enum';
+import {
+  DressStatusEnum,
+  DyeStatusEnum,
+  EmbroideryStatusEnum,
+} from 'src/dress/enum';
 import { User } from 'src/user/entities';
+import { EmbroiderService } from 'src/embroider/embroider.service';
 
 @Controller('tailor')
 export class TailorController {
@@ -32,6 +37,7 @@ export class TailorController {
     private readonly customerService: CustomerService,
     private readonly dressService: DressService,
     private readonly dayerService: DayerService,
+    private readonly embroiderService: EmbroiderService,
   ) {}
 
   @Post()
@@ -110,6 +116,87 @@ export class TailorController {
     });
   }
 
+  @Patch('transfer-dress/embroidery')
+  @UseGuards(JwtAuthGuard)
+  async transferDressForEmbroidery(
+    @AuthUser() user: any,
+    @Query() { dressId, embroiderId }: { dressId: number; embroiderId: number },
+  ) {
+    const isUser = await this.userService.findOne(+user.id);
+    if (!isUser) {
+      throw new BadRequestException('User Not Found, Try Login');
+    }
+
+    if (!dressId) {
+      throw new BadRequestException('Dress Id is required!');
+    }
+
+    const dressDayingStatus = [DyeStatusEnum.NotSent, DyeStatusEnum.Returned];
+    const dress = await this.dressService.findOne(dressId);
+
+    if (!dress) {
+      throw new BadRequestException('Dress Not Found');
+    }
+
+    if (!dress.isEmbroidery) {
+      throw new BadRequestException('Dress is not for Embroidery');
+    }
+
+    if (!dressDayingStatus.includes(dress.dyeStatus)) {
+      throw new BadRequestException(
+        'Dress Cant send for embroidery, its already sent to dayer for daying',
+      );
+    }
+
+    if (
+      dress.embroideryStatus !== EmbroideryStatusEnum.NotSent &&
+      dress.embroideryStatus !== EmbroideryStatusEnum.Returned
+    ) {
+      throw new BadRequestException(
+        'You already sent this dress to embroidery',
+      );
+    }
+
+    if (dress.isEmbroidered) {
+      throw new BadRequestException('Embroider already done his job');
+    }
+
+    if (!embroiderId) {
+      throw new BadRequestException('Embroider Id is required!');
+    }
+
+    const embroider = await this.embroiderService.findOne(+embroiderId);
+
+    if (!embroider) {
+      throw new BadRequestException('Embroider not found!');
+    }
+
+    // const dayer = await this.dayerService.findOne(dayerId);
+
+    // if (!dayer) {
+    //   throw new BadRequestException('Dayer Not Found');
+    // }
+
+    const tailor = await this.userService.findOneAndSelectProfiles(+user.id);
+
+    if (!tailor) {
+      throw new BadRequestException('Tailor Not Found');
+    }
+
+    dress.embroideryStatus = EmbroideryStatusEnum.Sent;
+    await this.dressService.changeDyeStatus(dress);
+
+    // if (dayerDress.includes(dress.id)) {
+    //   throw new BadRequestException('You already sent this dress to dayer');
+    // }
+
+    return this.dressService.transferDressForEmbroidery({
+      dress,
+      embroider,
+      tailor,
+    });
+  }
+
   @Get('dress/find-for-dye-dress')
   @UseGuards(JwtAuthGuard)
   findForDyeDress(@AuthUser() user: User) {
@@ -172,16 +259,16 @@ export class TailorController {
     @Param('id') id: number,
     @Query('status') status: DressStatusEnum,
   ) {
-    if(!status){
-      throw new BadRequestException("Status is required!")
+    if (!status) {
+      throw new BadRequestException('Status is required!');
     }
-    const dress = await this.dressService.findOne(id)
+    const dress = await this.dressService.findOne(id);
 
-    if(!dress){
-      throw new BadRequestException("Dress Not Fount")
+    if (!dress) {
+      throw new BadRequestException('Dress Not Fount');
     }
 
-    dress.status = status
+    dress.status = status;
     return this.dressService.changeDressStatus(id, dress);
   }
 

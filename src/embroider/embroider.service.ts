@@ -34,12 +34,19 @@ export class EmbroiderService {
           },
         },
       },
-      relations: ['user', 'tailor.user'],
+      relations: ['user', 'tailor.user', 'dress'],
     });
   }
 
+  addDress(addDress: CreateEmbroiderDto) {
+    return this.embroiderRepository.save(addDress);
+  }
+
   findOne(id: number) {
-    return `This action returns a #${id} embroider`;
+    return this.embroiderRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
   }
 
   update(id: number, updateEmbroiderDto: UpdateEmbroiderDto) {

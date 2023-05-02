@@ -31,7 +31,10 @@ export class TailorService {
   }
 
   findOne(id: number) {
-    return this.tailorRepository.findOne({ where: { id } });
+    return this.tailorRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
   }
 
   update(id: number, updateTailorDto: UpdateTailorDto) {

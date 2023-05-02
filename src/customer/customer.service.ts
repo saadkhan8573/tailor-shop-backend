@@ -80,7 +80,9 @@ export class CustomerService {
       .leftJoinAndSelect('customerDress.tailor', 'customerDressTailor')
       .leftJoinAndSelect('customerDressTailor.user', 'tailorUser')
       .leftJoin('customer.tailor', 'customerTailor')
-      .where('customerTailor.id = :customerTailorId', { customerTailorId: tailor })
+      .where('customerTailor.id = :customerTailorId', {
+        customerTailorId: tailor,
+      })
 
       .where('customerDressTailor.id = :dressTailorId', {
         dressTailorId: tailor,
@@ -113,7 +115,7 @@ export class CustomerService {
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} customer`;
+    return this.customerRepository.findOne({ where: { id } });
   }
 
   update(id: number, updateCustomerDto: UpdateCustomerDto) {

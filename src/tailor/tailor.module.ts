@@ -7,13 +7,16 @@ import { DressModule } from 'src/dress/dress.module';
 import { Tailor } from './entities';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DayerModule } from 'src/dayer/dayer.module';
+import { EmbroiderModule } from 'src/embroider/embroider.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Tailor]),
     forwardRef(() => CustomerModule),
+    forwardRef(() => DressModule),
+    forwardRef(() => EmbroiderModule),
+    
     UserModule,
-    DressModule,
     DayerModule,
   ],
   controllers: [TailorController],

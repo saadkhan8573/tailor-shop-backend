@@ -7,7 +7,9 @@ import { In, Repository } from 'typeorm';
 import { Dayer } from 'src/dayer/entities/dayer.entity';
 import { Tailor } from 'src/tailor/entities';
 import { DayerService } from 'src/dayer/dayer.service';
-import { DyeStatusEnum } from './enum';
+import { DyeStatusEnum, EmbroideryStatusEnum } from './enum';
+import { Embroider } from 'src/embroider/entities';
+import { EmbroiderService } from 'src/embroider/embroider.service';
 
 @Injectable()
 export class DressService {
@@ -15,6 +17,7 @@ export class DressService {
     @InjectRepository(Dress)
     private readonly dressRepository: Repository<Dress>,
     private readonly dayerService: DayerService,
+    private readonly embroiderService: EmbroiderService,
   ) {}
   create(createDressDto: CreateDressDto) {
     return this.dressRepository.save(createDressDto);
@@ -59,11 +62,35 @@ export class DressService {
     return await this.dayerService.addDress(dayerData);
   }
 
+  async transferDressForEmbroidery({
+    dress,
+    embroider,
+    tailor,
+  }: {
+    dress: Dress;
+    embroider: Embroider;
+    tailor: any;
+  }) {
+    const embroiderData = await this.embroiderService.create(embroider);
+
+    // dayerData.dressPickedFrom.push(tailor)
+    embroiderData.dress =
+      embroiderData.dress && embroiderData.dress?.length > 0
+        ? [...embroiderData.dress, dress]
+        : [dress];
+
+    return await this.embroiderService.addDress(embroiderData);
+  }
+
   changeDressStatus(id: number, dress: Dress) {
     return this.dressRepository.update(id, dress);
   }
 
   changeDyeStatus(dress: Dress) {
+    return this.dressRepository.save(dress);
+  }
+
+  async changeEmbroideryStatus(dress:Dress) {
     return this.dressRepository.save(dress);
   }
 

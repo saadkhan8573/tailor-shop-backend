@@ -1,3 +1,4 @@
+import { Dress } from 'src/dress/entities/dress.entity';
 import { Tailor } from 'src/tailor/entities';
 import { User } from 'src/user/entities';
 import {
@@ -5,6 +6,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -29,8 +31,6 @@ export class Embroider {
   @Column()
   zip: string;
 
-  
-
   @OneToOne(() => User, (user) => user.embroider, {
     onDelete: 'CASCADE',
     cascade: ['insert', 'insert', 'remove'],
@@ -41,4 +41,7 @@ export class Embroider {
   @ManyToOne(() => Tailor, (tailor) => tailor.embroider)
   @JoinColumn()
   tailor: Tailor;
+
+  @OneToMany(() => Dress, (dress) => dress.embroider)
+  dress: Dress[];
 }
