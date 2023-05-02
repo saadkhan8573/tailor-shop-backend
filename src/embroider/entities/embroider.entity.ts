@@ -29,6 +29,8 @@ export class Embroider {
   @Column()
   zip: string;
 
+  
+
   @OneToOne(() => User, (user) => user.embroider, {
     onDelete: 'CASCADE',
     cascade: ['insert', 'insert', 'remove'],

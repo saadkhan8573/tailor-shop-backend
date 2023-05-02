@@ -59,6 +59,10 @@ export class DressService {
     return await this.dayerService.addDress(dayerData);
   }
 
+  changeDressStatus(id: number, dress: Dress) {
+    return this.dressRepository.update(id, dress);
+  }
+
   changeDyeStatus(dress: Dress) {
     return this.dressRepository.save(dress);
   }

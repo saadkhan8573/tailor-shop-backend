@@ -21,7 +21,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { AuthUser } from 'src/decorators';
 import { DayerService } from 'src/dayer/dayer.service';
 import { Dress } from 'src/dress/entities/dress.entity';
-import { DyeStatusEnum } from 'src/dress/enum';
+import { DressStatusEnum, DyeStatusEnum } from 'src/dress/enum';
 import { User } from 'src/user/entities';
 
 @Controller('tailor')
@@ -122,8 +122,8 @@ export class TailorController {
     @AuthUser() user: User,
     @Query('dyeStatus') dyeStatus: DyeStatusEnum,
   ) {
-    if(!dyeStatus){
-      throw new BadRequestException("No Dye Status was found!")
+    if (!dyeStatus) {
+      throw new BadRequestException('No Dye Status was found!');
     }
     return this.dressService.findByDyeStatus(user?.id, dyeStatus);
   }
@@ -165,6 +165,24 @@ export class TailorController {
     }
     const tailor = await this.userService.findOneAndSelectProfiles(+user.id);
     return await this.customerService.findCustomersAndDress(+tailor.tailor.id);
+  }
+
+  @Patch('change-status/dress/:id')
+  async changeDressStatus(
+    @Param('id') id: number,
+    @Query('status') status: DressStatusEnum,
+  ) {
+    if(!status){
+      throw new BadRequestException("Status is required!")
+    }
+    const dress = await this.dressService.findOne(id)
+
+    if(!dress){
+      throw new BadRequestException("Dress Not Fount")
+    }
+
+    dress.status = status
+    return this.dressService.changeDressStatus(id, dress);
   }
 
   @Get(':id')

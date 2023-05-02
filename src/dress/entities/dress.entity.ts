@@ -10,7 +10,12 @@ import {
   ManyToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { DressEnum, PriorityEnum, StatusEnum } from '../enum';
+import {
+  DressEnum,
+  PriorityEnum,
+  DressStatusEnum,
+  EmbroideryStatusEnum,
+} from '../enum';
 import { DyeStatusEnum } from '../enum/DyeStatusEnum';
 
 @Entity()
@@ -37,10 +42,24 @@ export class Dress {
   @Column({
     type: 'enum',
     nullable: true,
-    enum: StatusEnum,
-    default: StatusEnum.Incomplete,
+    enum: EmbroideryStatusEnum,
+    default: EmbroideryStatusEnum.NotSent,
   })
-  status: StatusEnum;
+  embroideryStatus: EmbroideryStatusEnum;
+
+  @Column('boolean', { default: false })
+  isEmbroidered: boolean;
+
+  @Column('boolean', { default: false })
+  failedToEmbroider: boolean;
+
+  @Column({
+    type: 'enum',
+    nullable: true,
+    enum: DressStatusEnum,
+    default: DressStatusEnum.Incomplete,
+  })
+  status: DressStatusEnum;
 
   @Column('boolean', { default: false })
   isDye: boolean;

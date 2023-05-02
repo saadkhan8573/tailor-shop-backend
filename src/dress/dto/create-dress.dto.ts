@@ -1,7 +1,7 @@
 import { IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
 import { Customer } from 'src/customer/entities/customer.entity';
 import { Tailor } from 'src/tailor/entities';
-import { DressEnum, DyeStatusEnum, PriorityEnum, StatusEnum } from '../enum';
+import { DressEnum, DyeStatusEnum, PriorityEnum, DressStatusEnum, EmbroideryStatusEnum } from '../enum';
 
 export class CreateDressDto {
   @IsEnum(DressEnum)
@@ -12,13 +12,17 @@ export class CreateDressDto {
   @IsOptional()
   priority: PriorityEnum;
 
-  @IsEnum(StatusEnum)
+  @IsEnum(DressStatusEnum)
   @IsOptional()
-  status: StatusEnum;
+  status: DressStatusEnum;
 
   @IsEnum(DyeStatusEnum, { message: 'Provide a valid Dye Status' })
   @IsOptional()
   dyeStatus: DyeStatusEnum;
+
+  @IsEnum(EmbroideryStatusEnum, { message: 'Provide a valid Embroidery Status' })
+  @IsOptional()
+  embroideryStatus: EmbroideryStatusEnum;
 
   @IsOptional()
   isDye: boolean;
