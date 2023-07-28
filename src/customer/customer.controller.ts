@@ -9,10 +9,10 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { DressType } from 'src/dress/entities/dressType.entity';
 import { TailorService } from 'src/tailor/tailor.service';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { User } from 'src/user/entities';
-import { DressEnum } from '../dress/enum';
 import { CustomerService } from './customer.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
@@ -29,22 +29,25 @@ export class CustomerController {
     @Body() createCustomerDto: CreateCustomerDto,
     @Body() createUserDto: CreateUserDto,
   ) {
-    const tailor = await this.tailorService.findOwnerByIds(
-      String(createCustomerDto.tailor),
-    );
+    try {
+      const tailor = await this.tailorService.findOwnerByIds(
+        String(createCustomerDto.tailor),
+      );
 
-    if (!tailor.length) {
-      throw new BadRequestException('Tailor Does not exist or removed');
-    }
-    return this.customerService.create({
-      ...createCustomerDto,
-      user: { ...createUserDto } as User,
-      tailor,
-    });
+      if (!tailor.length) {
+        throw new BadRequestException('Tailor does not exist or removed');
+      }
+
+      return this.customerService.create({
+        ...createCustomerDto,
+        user: { ...createUserDto } as User,
+        tailor,
+      });
+    } catch (error) {}
   }
 
   @Get()
-  findAll(@Query('dresstype') dresstype: DressEnum) {
+  findAll(@Query('dresstype') dresstype: DressType) {
     return this.customerService.findAll(dresstype);
   }
 

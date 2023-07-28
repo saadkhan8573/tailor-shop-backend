@@ -59,11 +59,11 @@ export class DayerController {
     }
     if (dyeStatus === DyeStatusEnum.Dyed) {
       dress.isDyed = true;
-      dress.faiedToDye = false;
+      dress.failedToDye = false;
     }
 
     if (dyeStatus === DyeStatusEnum.FailedToDye) {
-      dress.faiedToDye = true;
+      dress.failedToDye = true;
       dress.isDyed = false;
     }
     dress.dyeStatus = dyeStatus;

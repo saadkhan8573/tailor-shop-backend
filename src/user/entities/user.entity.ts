@@ -4,25 +4,18 @@ import { Dayer } from 'src/dayer/entities/dayer.entity';
 import { Embroider } from 'src/embroider/entities';
 import { Employee } from 'src/employees/entities';
 import { Tailor } from 'src/tailor/entities';
-import {
-  Column,
-  Entity,
-  Index,
-  JoinColumn,
-  OneToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+
+import { BaseEntity } from 'src/base.entity';
+import { Sticher } from 'src/sticher/entities/sticher.entity';
+import { Column, Entity, Index, OneToOne } from 'typeorm';
 import { UserStatus } from '../enum';
 
 @Entity()
-export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class User extends BaseEntity {
   @Column()
   name: string;
 
-  @Column({ name: 'email', nullable: false, default: '', unique: true })
+  @Column({ nullable: false, unique: true })
   @Index({ unique: true })
   email: string;
 
@@ -38,7 +31,7 @@ export class User {
     enum: UserRole,
     default: UserRole.Tailor,
   })
-  role: string;
+  role: UserRole;
 
   @Column({
     type: 'enum',
@@ -61,4 +54,7 @@ export class User {
 
   @OneToOne(() => Dayer, (dayer) => dayer.user, { nullable: true })
   dayer: Dayer;
+
+  @OneToOne(() => Sticher, (sticher) => sticher.user, { nullable: true })
+  sticher: Sticher;
 }

@@ -1,30 +1,49 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { DayerService } from 'src/dayer/dayer.service';
+import { Dayer } from 'src/dayer/entities/dayer.entity';
+import { EmbroiderService } from 'src/embroider/embroider.service';
+import { Embroider } from 'src/embroider/entities';
+import { In, Repository } from 'typeorm';
 import { CreateDressDto } from './dto/create-dress.dto';
 import { UpdateDressDto } from './dto/update-dress.dto';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Dress } from './entities/dress.entity';
-import { In, Repository } from 'typeorm';
-import { Dayer } from 'src/dayer/entities/dayer.entity';
-import { Tailor } from 'src/tailor/entities';
-import { DayerService } from 'src/dayer/dayer.service';
-import { DyeStatusEnum, EmbroideryStatusEnum } from './enum';
-import { Embroider } from 'src/embroider/entities';
-import { EmbroiderService } from 'src/embroider/embroider.service';
+import { DressType } from './entities/dressType.entity';
+import { DressStatusEnum, DyeStatusEnum } from './enum';
+import { CreateDressTypeDto } from './dto/create-dressType.dto';
 
 @Injectable()
 export class DressService {
   constructor(
     @InjectRepository(Dress)
     private readonly dressRepository: Repository<Dress>,
+    @InjectRepository(DressType)
+    private readonly dressTypeRepository: Repository<DressType>,
     private readonly dayerService: DayerService,
     private readonly embroiderService: EmbroiderService,
   ) {}
-  create(createDressDto: CreateDressDto) {
-    return this.dressRepository.save(createDressDto);
+  async create(createDressDto: CreateDressDto) {
+    const dressType = await this.dressTypeRepository.findOne({
+      where: { id: +createDressDto.dresstype },
+      relations: ['dress'],
+    });
+
+    if (!dressType) {
+      throw new BadRequestException('DressType Not Found');
+    }
+
+    const dress = await this.dressRepository.save(createDressDto);
+
+    if (dress) {
+      dressType.dress.push(dress);
+      return this.dressTypeRepository.save(dressType);
+    }
   }
 
   findAll() {
-    return this.dressRepository.find({ relations: ['tailor', 'customer'] });
+    return this.dressRepository.find({
+      relations: ['tailor.user', 'customer', 'dressType'],
+    });
   }
 
   findDressByOwner(id: number) {
@@ -42,6 +61,12 @@ export class DressService {
     return this.dressRepository.findOneBy({ id });
   }
 
+  findOneByTailor(id: number, tailorId: number) {
+    return this.dressRepository.findOne({
+      where: { id, tailor: { user: { id: tailorId } } },
+    });
+  }
+
   async transferDressForDye({
     dress,
     dayer,
@@ -53,13 +78,17 @@ export class DressService {
   }) {
     const dayerData = await this.dayerService.create(dayer);
 
-    // dayerData.dressPickedFrom.push(tailor)
     dayerData.dress =
       dayerData.dress && dayerData.dress?.length > 0
         ? [...dayerData.dress, dress]
         : [dress];
 
-    return await this.dayerService.addDress(dayerData);
+    const sentToDyer = await this.dayerService.addDress(dayerData);
+
+    if (sentToDyer) {
+      throw new HttpException('Successfully Sent', 200);
+    }
+    throw new BadRequestException('Failed To Sent ');
   }
 
   async transferDressForEmbroidery({
@@ -82,15 +111,48 @@ export class DressService {
     return await this.embroiderService.addDress(embroiderData);
   }
 
-  changeDressStatus(id: number, dress: Dress) {
-    return this.dressRepository.update(id, dress);
+  async changeDressStatus(id: number, status: DressStatusEnum) {
+    const dress = await this.findOne(id);
+    if (!dress) {
+      throw new BadRequestException('Dress Not Found');
+    }
+
+    dress.status = status;
+    const updatedDress = await this.dressRepository.update(id, dress);
+    if (updatedDress) {
+      return dress;
+    }
+  }
+
+  async findDressByTailorAndChangeDressStatus(
+    id: number,
+    tailorUserId: number,
+    status: DressStatusEnum,
+  ) {
+    const dress = await this.dressRepository.findOne({
+      where: { id, tailor: { user: { id: tailorUserId } } },
+    });
+    if (!dress) {
+      throw new BadRequestException('Dress Not Found');
+    }
+
+    if (dress.isSentForStiching) {
+      throw new BadRequestException('Dress already sent for stiching');
+    }
+
+    dress.status = status;
+    dress.isSentForStiching = true;
+    const updatedDress = await this.dressRepository.update(id, dress);
+    if (updatedDress) {
+      return dress;
+    }
   }
 
   changeDyeStatus(dress: Dress) {
     return this.dressRepository.save(dress);
   }
 
-  async changeEmbroideryStatus(dress:Dress) {
+  async changeEmbroideryStatus(dress: Dress) {
     return this.dressRepository.save(dress);
   }
 
@@ -129,11 +191,85 @@ export class DressService {
     });
   }
 
+  findDressForDyeList(id: number, isDye: string) {
+    return this.dressRepository.find({
+      where: {
+        ...(isDye === 'true' ? { isDye: true } : { isDye: false }),
+        tailor: {
+          user: {
+            id,
+          },
+        },
+      },
+    });
+  }
+
+  findDressForEmbroideryList(id: number, isEmbroidery: string) {
+    return this.dressRepository.findAndCount({
+      where: {
+        ...(isEmbroidery === 'true'
+          ? { isEmbroidery: true }
+          : { isEmbroidery: false }),
+        tailor: {
+          user: {
+            id,
+          },
+        },
+      },
+    });
+  }
+
+  async findDressBySticherAndReturnToTailor(
+    dressId: number,
+    sticherId: number,
+  ) {
+    const dress = await this.dressRepository.findOne({
+      where: { id: dressId },
+      // where: { id: dressId, sticher: { id: sticherId } },
+      relations: ['sticher', 'tailor'],
+    });
+
+    if (!dress) {
+      throw new BadRequestException('Dress Not Found'!);
+    }
+
+    dress.isSentForStiching = false;
+    dress.isDressStiched = true;
+    dress.isDressReturnedAfterStiching = true;
+    return this.dressRepository.save(dress);
+    // return this.sticherRepository.update(dress.id, dress);
+  }
+
   update(id: number, updateDressDto: UpdateDressDto) {
     return `This action updates a #${id} dress`;
   }
 
   remove(id: number) {
     return `This action removes a #${id} dress`;
+  }
+
+  async removeAllOwner() {
+    const ids = await this.dressRepository.find({ select: ['id'] });
+    return await this.dressRepository.remove(ids);
+  }
+
+  async addDressType(dressType: string[]) {
+    dressType.forEach((dType) => {
+      return this.dressTypeRepository.save({ type: dType });
+    });
+  }
+  getDressTypeList() {
+    return this.dressTypeRepository.find({ relations: ['dress'] });
+  }
+
+  findByGivenDressType(dressTypes: string[]) {
+    return this.dressTypeRepository.find({
+      where: { type: In(dressTypes) },
+      select: { type: true },
+    });
+  }
+
+  findDressTypeById(id: number) {
+    return this.dressTypeRepository.findOneBy({ id });
   }
 }

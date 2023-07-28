@@ -1,10 +1,10 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Customer } from './entities/customer.entity';
-import { Repository } from 'typeorm';
-import { DressEnum } from '../dress/enum';
+import { DressType } from 'src/dress/entities/dressType.entity';
 
 @Injectable()
 export class CustomerService {
@@ -16,7 +16,7 @@ export class CustomerService {
     return this.customerRepository.save(createCustomerDto);
   }
 
-  findAll(dresstype: DressEnum) {
+  findAll(dressType: DressType) {
     // if (dresstype && !Object.values(DressEnum).includes(dresstype)) {
     //   throw new BadRequestException('DressType Not Found');
     // }

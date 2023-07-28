@@ -1,39 +1,38 @@
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { Customer } from 'src/customer/entities/customer.entity';
-import { Dress } from 'src/dress/entities/dress.entity';
-import { Employee } from 'src/employees/entities';
-import { Sticher } from 'src/sticher/entities/sticher.entity';
+import { Tailor } from 'src/tailor/entities';
 import { User } from 'src/user/entities';
+import { WorkingDetailWithTailor } from '../entities/workDetail.entity';
 
-export class CreateTailorDto {
-  @IsNotEmpty()
-  @IsString()
-  phone: string;
-
+export class CreateSticherDto {
   @IsNotEmpty()
   @IsString()
   address: string;
 
   @IsNotEmpty()
   @IsString()
-  dob: Date;
+  state: string;
 
   @IsNotEmpty()
   @IsString()
-  gender: string;
+  zip: string;
+
+  @IsNotEmpty()
+  @IsString()
+  dob: Date;
+
+  @IsNotEmpty()
+  skills: string[];
 
   @IsOptional()
-  user: User;
-
-  @IsOptional()
-  employee: Employee;
+  workingDetailWithTailor: WorkingDetailWithTailor[];
 
   @IsOptional()
   customer: Customer[];
 
   @IsOptional()
-  dress: Dress;
+  tailor: Tailor[];
 
   @IsOptional()
-  sticher: Sticher[];
+  user: User;
 }

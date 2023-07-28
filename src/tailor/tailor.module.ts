@@ -8,6 +8,7 @@ import { Tailor } from './entities';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DayerModule } from 'src/dayer/dayer.module';
 import { EmbroiderModule } from 'src/embroider/embroider.module';
+import { SticherModule } from 'src/sticher/sticher.module';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { EmbroiderModule } from 'src/embroider/embroider.module';
     forwardRef(() => CustomerModule),
     forwardRef(() => DressModule),
     forwardRef(() => EmbroiderModule),
-    
+    forwardRef(() => SticherModule),
     UserModule,
     DayerModule,
   ],

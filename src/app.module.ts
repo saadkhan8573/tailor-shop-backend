@@ -19,6 +19,10 @@ import { Tailor } from './tailor/entities';
 import { TailorModule } from './tailor/tailor.module';
 import { User } from './user/entities';
 import { UserModule } from './user/user.module';
+import { SticherModule } from './sticher/sticher.module';
+import { Sticher } from './sticher/entities/sticher.entity';
+import { WorkingDetailWithTailor } from './sticher/entities/workDetail.entity';
+import { DressType } from './dress/entities/dressType.entity';
 
 @Module({
   imports: [
@@ -32,7 +36,18 @@ import { UserModule } from './user/user.module';
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        entities: [User, Employee, Embroider, Customer, Dress, Dayer, Tailor],
+        entities: [
+          User,
+          Dress,
+          Dayer,
+          Tailor,
+          Sticher,
+          Employee,
+          Customer,
+          DressType,
+          Embroider,
+          WorkingDetailWithTailor,
+        ],
         synchronize: true,
       }),
       inject: [ConfigService],
@@ -45,6 +60,7 @@ import { UserModule } from './user/user.module';
     AuthModule,
     DressModule,
     TailorModule,
+    SticherModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,15 +1,16 @@
 import { Dayer } from 'src/dayer/entities/dayer.entity';
 import { Dress } from 'src/dress/entities/dress.entity';
+import { Sticher } from 'src/sticher/entities/sticher.entity';
 import { Tailor } from 'src/tailor/entities';
 import { User } from 'src/user/entities';
 import {
   Column,
   Entity,
-  JoinColumn,
-  ManyToMany,
-  OneToMany,
   OneToOne,
-  PrimaryGeneratedColumn
+  OneToMany,
+  ManyToMany,
+  JoinColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 
 @Entity()
@@ -50,4 +51,7 @@ export class Customer {
 
   @OneToMany(() => Dress, (dress) => dress.customer)
   dress: Dress;
+
+  @ManyToMany(() => Sticher, (sticher) => sticher.customer, { nullable: true })
+  sticher: Sticher[];
 }

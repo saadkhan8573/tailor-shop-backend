@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 import { CreateTailorDto } from './dto/create-tailor.dto';
 import { UpdateTailorDto } from './dto/update-tailor.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Tailor } from './entities';
 import { Repository, In } from 'typeorm';
+import { Sticher } from 'src/sticher/entities/sticher.entity';
 
 @Injectable()
 export class TailorService {
@@ -30,11 +31,52 @@ export class TailorService {
     return this.tailorRepository.find({ where: { id: In(tailorIds) } });
   }
 
-  findOne(id: number) {
-    return this.tailorRepository.findOne({
+  async findOne(id: number) {
+    const tailor = await this.tailorRepository.findOne({
       where: { id },
-      relations: ['user'],
+      relationLoadStrategy: 'query',
+      relations: [
+        'user',
+        'sticher',
+        'dress',
+        'workingDetailWithTailor.dress',
+        'workingDetailWithTailor.sticher.user',
+      ],
     });
+
+    if (tailor) {
+      return tailor;
+    } else {
+      throw new HttpException('No Tailor were found', 400);
+    }
+  }
+
+  async updateTailorSticher(id: number, sticher: Sticher) {
+    const tailor = await this.tailorRepository.findOne({
+      where: { user: { id } },
+      relations: ['sticher'],
+    });
+    tailor.sticher.push(sticher);
+    // tailor.sticher =
+    //   tailor.sticher?.length > 0 ? [...tailor.sticher, sticher] : [sticher];
+
+    return this.tailorRepository.save(tailor);
+  }
+
+  async removeSticherFromTailor(sticherId: number, tailerUserId: number) {
+    const tailor = await this.tailorRepository.findOne({
+      where: { user: { id: tailerUserId } },
+      relations: ['sticher'],
+    });
+
+    if (!tailor) {
+      throw new BadRequestException('Tailor Not Found');
+    }
+    tailor.sticher = tailor.sticher.filter(
+      (sticher) => sticher.id !== sticherId,
+    );
+
+    return this.tailorRepository.save(tailor);
   }
 
   update(id: number, updateTailorDto: UpdateTailorDto) {

@@ -1,36 +1,23 @@
+import { BaseEntity } from 'src/base.entity';
 import { Customer } from 'src/customer/entities/customer.entity';
 import { Dayer } from 'src/dayer/entities/dayer.entity';
-import { Tailor } from 'src/tailor/entities';
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToOne,
-  ManyToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
-import {
-  DressEnum,
-  PriorityEnum,
-  DressStatusEnum,
-  EmbroideryStatusEnum,
-} from '../enum';
-import { DyeStatusEnum } from '../enum/DyeStatusEnum';
 import { Embroider } from 'src/embroider/entities';
+import { Sticher } from 'src/sticher/entities/sticher.entity';
+import { WorkingDetailWithTailor } from 'src/sticher/entities/workDetail.entity';
+import { Tailor } from 'src/tailor/entities';
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
+import { DressStatusEnum, EmbroideryStatusEnum, PriorityEnum } from '../enum';
+import { DyeStatusEnum } from '../enum/DyeStatusEnum';
+import { DressType } from './dressType.entity';
 
 @Entity()
-export class Dress {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column({
-    type: 'enum',
-    nullable: true,
-    enum: DressEnum,
-    default: DressEnum.Simple,
+export class Dress extends BaseEntity {
+  @ManyToOne(() => DressType, (dressType) => dressType.dress, {
+    onDelete: 'CASCADE',
+    cascade: ['insert', 'update', 'remove'],
   })
-  dresstype: DressEnum;
+  @JoinColumn()
+  dressType: DressType;
 
   @Column({
     type: 'enum',
@@ -81,7 +68,7 @@ export class Dress {
   isDyed: boolean;
 
   @Column('boolean', { default: false })
-  faiedToDye: boolean;
+  failedToDye: boolean;
 
   @Column({
     type: 'enum',
@@ -106,4 +93,21 @@ export class Dress {
   })
   @JoinColumn()
   embroider: Embroider;
+
+  @Column('boolean', { nullable: true })
+  isSentForStiching: boolean;
+
+  @Column('boolean', { nullable: true })
+  isDressStiched: boolean;
+
+  @Column('boolean', { nullable: true })
+  isDressReturnedAfterStiching: boolean;
+
+  @ManyToOne(() => Sticher, (sticher) => sticher.dress, { nullable: true })
+  @JoinColumn()
+  sticher: Sticher;
+
+  @ManyToOne(() => WorkingDetailWithTailor, (workDetail) => workDetail.dress)
+  @JoinColumn()
+  workDetail: WorkingDetailWithTailor;
 }

@@ -1,25 +1,24 @@
+import { BaseEntity } from 'src/base.entity';
 import { Customer } from 'src/customer/entities/customer.entity';
 import { Dayer } from 'src/dayer/entities/dayer.entity';
 import { Dress } from 'src/dress/entities/dress.entity';
 import { Embroider } from 'src/embroider/entities';
 import { Employee } from 'src/employees/entities';
+import { Sticher } from 'src/sticher/entities/sticher.entity';
+import { WorkingDetailWithTailor } from 'src/sticher/entities/workDetail.entity';
 import { User } from 'src/user/entities';
 import {
   Column,
   Entity,
-  PrimaryGeneratedColumn,
-  OneToOne,
-  OneToMany,
   JoinColumn,
-  ManyToMany,
   JoinTable,
+  ManyToMany,
+  OneToMany,
+  OneToOne,
 } from 'typeorm';
 
 @Entity()
-export class Tailor {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class Tailor extends BaseEntity {
   @Column({ nullable: true })
   phone: string;
 
@@ -57,4 +56,14 @@ export class Tailor {
 
   @OneToMany(() => Dress, (dress) => dress.tailor, { nullable: true })
   dress: Dress;
+
+  @ManyToMany(() => Sticher, (sticher) => sticher.tailor, { nullable: true })
+  sticher: Sticher[];
+
+  @OneToMany(
+    () => WorkingDetailWithTailor,
+    (workingDetailWithTailor) => workingDetailWithTailor.tailor,
+    { nullable: true },
+  )
+  workingDetailWithTailor: WorkingDetailWithTailor[];
 }

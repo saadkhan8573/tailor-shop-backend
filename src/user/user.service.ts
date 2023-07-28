@@ -24,7 +24,9 @@ export class UserService {
   }
 
   findAll() {
-    return this.userRepository.find();
+    return this.userRepository.find({
+      relations: ['tailor', 'customer', 'sticher', 'dayer'],
+    });
   }
 
   findByEmail(email: string) {
@@ -51,7 +53,10 @@ export class UserService {
   }
 
   findOne(id: number) {
-    return this.userRepository.findOneBy({ id });
+    return this.userRepository.findOne({
+      where: { id },
+      relations: ['tailor', 'customer', 'sticher'],
+    });
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
