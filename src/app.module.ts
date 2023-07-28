@@ -11,18 +11,21 @@ import { DayerModule } from './dayer/dayer.module';
 import { Dayer } from './dayer/entities/dayer.entity';
 import { DressModule } from './dress/dress.module';
 import { Dress } from './dress/entities/dress.entity';
+import { DressType } from './dress/entities/dressType.entity';
 import { EmbroiderModule } from './embroider/embroider.module';
 import { Embroider } from './embroider/entities';
 import { EmployeesModule } from './employees/employees.module';
 import { Employee } from './employees/entities';
+import { Sticher } from './sticher/entities/sticher.entity';
+import { SticherModule } from './sticher/sticher.module';
 import { Tailor } from './tailor/entities';
 import { TailorModule } from './tailor/tailor.module';
 import { User } from './user/entities';
 import { UserModule } from './user/user.module';
-import { SticherModule } from './sticher/sticher.module';
-import { Sticher } from './sticher/entities/sticher.entity';
-import { WorkingDetailWithTailor } from './sticher/entities/workDetail.entity';
-import { DressType } from './dress/entities/dressType.entity';
+import { WorkDetail } from './workdetail/entities/workdetail.entity';
+import { WorkdetailModule } from './workdetail/workdetail.module';
+import { DresscutterModule } from './dresscutter/dresscutter.module';
+import { Dresscutter } from './dresscutter/entities/dresscutter.entity';
 
 @Module({
   imports: [
@@ -46,21 +49,24 @@ import { DressType } from './dress/entities/dressType.entity';
           Customer,
           DressType,
           Embroider,
-          WorkingDetailWithTailor,
+          WorkDetail,
+          Dresscutter,
         ],
         synchronize: true,
       }),
       inject: [ConfigService],
     }),
-    UserModule,
-    EmployeesModule,
-    EmbroiderModule,
-    DayerModule,
-    CustomerModule,
     AuthModule,
+    UserModule,
+    DayerModule,
     DressModule,
     TailorModule,
     SticherModule,
+    CustomerModule,
+    EmployeesModule,
+    EmbroiderModule,
+    WorkdetailModule,
+    DresscutterModule,
   ],
   controllers: [AppController],
   providers: [AppService],

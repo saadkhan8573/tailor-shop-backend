@@ -1,22 +1,25 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateSticherDto } from './dto/create-sticher.dto';
-import { UpdateSticherDto } from './dto/update-sticher.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { CreateSticherDto } from './dto/create-sticher.dto';
+import { UpdateSticherDto } from './dto/update-sticher.dto';
 import { Sticher } from './entities/sticher.entity';
-import { WorkingDetailWithTailor } from './entities/workDetail.entity';
-
-import { UserStatus } from 'src/user/enum';
-import { Tailor } from 'src/tailor/entities';
 import { Dress } from 'src/dress/entities/dress.entity';
+import { DressType } from 'src/dress/entities/dressType.entity';
+import { UserStatus } from 'src/user/enum';
+import { WorkDetail } from 'src/workdetail/entities/workdetail.entity';
+import { WorkdetailService } from 'src/workdetail/workdetail.service';
 
 @Injectable()
 export class SticherService {
   constructor(
     @InjectRepository(Sticher)
     private readonly sticherRepository: Repository<Sticher>,
-    @InjectRepository(WorkingDetailWithTailor)
-    private readonly workingDetailRepository: Repository<WorkingDetailWithTailor>,
+
+    @InjectRepository(WorkDetail)
+    private readonly workDetailRepository: Repository<WorkDetail>,
+
+    private readonly workDetailService: WorkdetailService,
   ) {}
   create(createSticherDto: CreateSticherDto) {
     return this.sticherRepository.save(createSticherDto);
@@ -24,7 +27,7 @@ export class SticherService {
 
   findAll() {
     return this.sticherRepository.find({
-      relations: ['user'],
+      relations: ['user', 'skills'],
     });
   }
 
@@ -40,6 +43,8 @@ export class SticherService {
       relations: [
         'tailor',
         'dress',
+        'user',
+        'skills',
         'workingDetailWithTailor.dress',
         'workingDetailWithTailor.tailor',
       ],
@@ -52,94 +57,21 @@ export class SticherService {
     });
   }
 
-  async addWorkingDetailWithTailor(object: any) {
-    // const sticher = await this.sticherRepository.findOne({
-    //   where: { user: { id } },
-    // });
-
-    // if (!sticher) {
-    //   throw new BadRequestException('Sticher Not Found');
-    // }
-
-    // const isExistTailor = sticher?.workingDetailWithTailor?.find(
-    //   (workingDetail) => workingDetail?.tailor === tailor,
-    // );
-
-    // if (isExistTailor) {
-    //   throw new BadRequestException('You already sent request to this tailor');
-    // }
-
-    // sticher.workingDetailWithTailor.push({
-    //   tailor,
-    //   workingHoursPerDay,
-    //   sticher,
-    // } as WorkingDetailWithTailor);
-    // sticher.workingDetailWithTailor &&
-    // sticher.workingDetailWithTailor?.length > 0
-    //   ? [
-    //       ...sticher.workingDetailWithTailor,
-    //       {
-    //         tailor,
-    //         workingHoursPerDay,
-    //         sticher,
-    //       },
-    //     ]
-    //   : [
-    //       {
-    //         tailor,
-    //         workingHoursPerDay,
-    //         sticher,
-    //       },
-    //     ];
-    return await this.workingDetailRepository.save(object);
-  }
-
-  async findWorkDetailAndStatusUpdate(
-    id: number,
-    status: UserStatus,
-    tailorUserId: number,
-  ) {
-    const sticherWorkDetail = await this.workingDetailRepository.findOne({
-      where: { id, tailor: { user: { id: tailorUserId } } },
-      relations: ['tailor', 'sticher'],
-    });
-    if (!sticherWorkDetail) {
-      throw new BadRequestException('Sticher Work Detail Not Found');
-    }
-    sticherWorkDetail.status = status;
-    const updateWorkingDetail = this.workingDetailRepository.update(
-      id,
-      sticherWorkDetail,
-    );
-
-    if (updateWorkingDetail) {
-      return sticherWorkDetail;
-    } else {
-      throw new BadRequestException('Sticher work detail not updated');
-    }
-  }
-
   async sendDressToSticher(
     dress: Dress,
     sticherWorkDetailId: number,
     tailorUserId: number,
   ) {
-    const sticherDetail = await this.workingDetailRepository.findOne({
-      where: {
-        id: sticherWorkDetailId,
-        tailor: { user: { id: tailorUserId } },
-      },
-      relations: ['dress', 'sticher.dress'],
-    });
+    const sticherDetail =
+      await this.workDetailService.findSticherDetailByTailor(
+        sticherWorkDetailId,
+        tailorUserId,
+      );
 
     const sticher = await this.sticherRepository.findOne({
       where: { workingDetailWithTailor: { id: sticherWorkDetailId } },
       relations: ['dress'],
     });
-
-    if (!sticherDetail) {
-      throw new BadRequestException('No Sticher Detail were found');
-    }
 
     if (!sticher) {
       throw new BadRequestException('No Sticher were found');
@@ -149,7 +81,7 @@ export class SticherService {
 
     sticher.dress.push(dress);
     await this.sticherRepository.save(sticher);
-    const updatedSticherDetail = await this.workingDetailRepository.save(
+    const updatedSticherDetail = await this.workDetailRepository.save(
       sticherDetail,
     );
 
@@ -158,22 +90,21 @@ export class SticherService {
     }
   }
 
-  getSticherWorkDetail() {
-    return this.workingDetailRepository.find({
-      relations: ['tailor', 'sticher', 'dress'],
-    });
-  }
-
-  async updateSticherSkills(sticherUserId: number, skills: string[]) {
+  async updateSticherSkills(sticherUserId: number, skills: DressType[]) {
     const sticher = await this.sticherRepository.findOne({
       where: { user: { id: sticherUserId } },
-    });
-    const removeCommonSkills = skills.filter((skill) => {
-      return !sticher.skills.includes(skill);
+      relations: ['skills'],
     });
 
-    sticher.skills = [...sticher.skills, ...removeCommonSkills];
-    return this.sticherRepository.update(sticher.id, sticher);
+    sticher.skills = [...sticher.skills, ...skills];
+    return this.sticherRepository.save(sticher);
+  }
+
+  async findSticherByWorkDetail(workDetailId: number) {
+    return this.sticherRepository.findOne({
+      where: { workingDetailWithTailor: { id: workDetailId } },
+      relations: ['skills'],
+    });
   }
 
   update(id: number, updateSticherDto: UpdateSticherDto) {

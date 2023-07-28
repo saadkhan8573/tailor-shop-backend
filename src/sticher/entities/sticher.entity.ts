@@ -1,8 +1,11 @@
 import { BaseEntity } from 'src/base.entity';
 import { Customer } from 'src/customer/entities/customer.entity';
 import { Dress } from 'src/dress/entities/dress.entity';
+import { DressType } from 'src/dress/entities/dressType.entity';
+import { Dresscutter } from 'src/dresscutter/entities/dresscutter.entity';
 import { Tailor } from 'src/tailor/entities';
 import { User } from 'src/user/entities';
+import { WorkDetail } from 'src/workdetail/entities/workdetail.entity';
 import {
   Column,
   Entity,
@@ -12,7 +15,6 @@ import {
   OneToMany,
   OneToOne,
 } from 'typeorm';
-import { WorkingDetailWithTailor } from './workDetail.entity';
 
 @Entity({ name: 'sticher' })
 export class Sticher extends BaseEntity {
@@ -28,8 +30,11 @@ export class Sticher extends BaseEntity {
   @Column()
   dob: Date;
 
-  @Column('jsonb', { nullable: true, default: [] })
-  skills: string[];
+  @ManyToMany(() => DressType, (dressType) => dressType.sticher, {
+    onDelete: 'CASCADE',
+    cascade: ['insert', 'remove', 'update'],
+  })
+  skills: DressType[];
 
   @OneToOne(() => User, (user) => user.sticher, {
     onDelete: 'CASCADE',
@@ -51,17 +56,22 @@ export class Sticher extends BaseEntity {
   tailor: Tailor[];
 
   @OneToMany(
-    () => WorkingDetailWithTailor,
+    () => WorkDetail,
     (workingDetailWithTailor) => workingDetailWithTailor.sticher,
     { nullable: true },
   )
-  workingDetailWithTailor: WorkingDetailWithTailor[];
+  workingDetailWithTailor: WorkDetail[];
 
   // @Column('jsonb', { nullable: true, default: [] })
   // workingDetailWithTailor: WorkingDetailWithTailor[];
 
   @OneToMany(() => Dress, (dress) => dress.sticher)
   dress: Dress[];
+
+  @ManyToMany(() => Dresscutter, (dresscutter) => dresscutter.sticher, {
+    nullable: true,
+  })
+  dressCutter: Tailor[];
 
   // @BeforeInsert()
   // updateCreatedAt() {

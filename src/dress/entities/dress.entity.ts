@@ -3,12 +3,13 @@ import { Customer } from 'src/customer/entities/customer.entity';
 import { Dayer } from 'src/dayer/entities/dayer.entity';
 import { Embroider } from 'src/embroider/entities';
 import { Sticher } from 'src/sticher/entities/sticher.entity';
-import { WorkingDetailWithTailor } from 'src/sticher/entities/workDetail.entity';
 import { Tailor } from 'src/tailor/entities';
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
 import { DressStatusEnum, EmbroideryStatusEnum, PriorityEnum } from '../enum';
 import { DyeStatusEnum } from '../enum/DyeStatusEnum';
 import { DressType } from './dressType.entity';
+import { WorkDetail } from 'src/workdetail/entities/workdetail.entity';
+import { Dresscutter } from 'src/dresscutter/entities/dresscutter.entity';
 
 @Entity()
 export class Dress extends BaseEntity {
@@ -107,7 +108,10 @@ export class Dress extends BaseEntity {
   @JoinColumn()
   sticher: Sticher;
 
-  @ManyToOne(() => WorkingDetailWithTailor, (workDetail) => workDetail.dress)
+  @ManyToOne(() => WorkDetail, (workDetail) => workDetail.dress)
   @JoinColumn()
-  workDetail: WorkingDetailWithTailor;
+  workDetail: WorkDetail;
+
+  @ManyToOne(() => Dresscutter, (dressCutter) => dressCutter.dress)
+  dressCutter: Dresscutter;
 }

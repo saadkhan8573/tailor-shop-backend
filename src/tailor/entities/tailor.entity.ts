@@ -2,11 +2,12 @@ import { BaseEntity } from 'src/base.entity';
 import { Customer } from 'src/customer/entities/customer.entity';
 import { Dayer } from 'src/dayer/entities/dayer.entity';
 import { Dress } from 'src/dress/entities/dress.entity';
+import { Dresscutter } from 'src/dresscutter/entities/dresscutter.entity';
 import { Embroider } from 'src/embroider/entities';
 import { Employee } from 'src/employees/entities';
 import { Sticher } from 'src/sticher/entities/sticher.entity';
-import { WorkingDetailWithTailor } from 'src/sticher/entities/workDetail.entity';
 import { User } from 'src/user/entities';
+import { WorkDetail } from 'src/workdetail/entities/workdetail.entity';
 import {
   Column,
   Entity,
@@ -61,9 +62,12 @@ export class Tailor extends BaseEntity {
   sticher: Sticher[];
 
   @OneToMany(
-    () => WorkingDetailWithTailor,
+    () => WorkDetail,
     (workingDetailWithTailor) => workingDetailWithTailor.tailor,
     { nullable: true },
   )
-  workingDetailWithTailor: WorkingDetailWithTailor[];
+  workingDetailWithTailor: WorkDetail[];
+
+  @ManyToMany(() => Dresscutter, (dressCutter) => dressCutter.tailor)
+  dressCutter: Dresscutter;
 }

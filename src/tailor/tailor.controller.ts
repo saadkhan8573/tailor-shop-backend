@@ -29,6 +29,7 @@ import { UpdateTailorDto } from './dto/update-tailor.dto';
 import { TailorService } from './tailor.service';
 import { UserStatus } from 'src/user/enum';
 import { SticherService } from 'src/sticher/sticher.service';
+import { WorkdetailService } from 'src/workdetail/workdetail.service';
 
 @Controller('tailor')
 export class TailorController {
@@ -40,6 +41,7 @@ export class TailorController {
     private readonly sticherService: SticherService,
     private readonly customerService: CustomerService,
     private readonly embroiderService: EmbroiderService,
+    private readonly workDetailService: WorkdetailService,
   ) {}
 
   @Post()
@@ -312,11 +314,12 @@ export class TailorController {
       throw new BadRequestException('Work Detail Id is required');
     }
 
-    const workDetail = await this.sticherService.findWorkDetailAndStatusUpdate(
-      +workDetailId,
-      status,
-      +user?.id,
-    );
+    const workDetail =
+      await this.workDetailService.findWorkDetailAndStatusUpdate(
+        +workDetailId,
+        status,
+        +user?.id,
+      );
 
     return status === UserStatus.APPROVED
       ? this.tailorService.updateTailorSticher(+user?.id, workDetail.sticher)
@@ -346,10 +349,15 @@ export class TailorController {
       );
     }
 
+    const sticher = await this.sticherService.findSticherByWorkDetail(
+      +sticherWorkDetailId,
+    );
+
     const dress = await this.dressService.findDressByTailorAndChangeDressStatus(
       dressId,
       +user?.id,
       DressStatusEnum.InProgress,
+      sticher,
     );
 
     const workDetail = await this.sticherService.sendDressToSticher(

@@ -5,13 +5,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Sticher } from './entities/sticher.entity';
 import { TailorModule } from 'src/tailor/tailor.module';
 import { UserModule } from 'src/user/user.module';
-import { WorkingDetailWithTailor } from './entities/workDetail.entity';
 import { DressModule } from 'src/dress/dress.module';
+import { WorkDetail } from 'src/workdetail/entities/workdetail.entity';
+import { WorkdetailModule } from 'src/workdetail/workdetail.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Sticher, WorkingDetailWithTailor]),
+    TypeOrmModule.forFeature([Sticher, WorkDetail]),
     forwardRef(() => TailorModule),
+    forwardRef(() => WorkdetailModule),
     UserModule,
     DressModule,
   ],

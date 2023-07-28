@@ -2,11 +2,11 @@ import { BaseEntity } from 'src/base.entity';
 import { Tailor } from 'src/tailor/entities';
 import { UserStatus } from 'src/user/enum';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
-import { Sticher } from './sticher.entity';
 import { Dress } from 'src/dress/entities/dress.entity';
+import { Sticher } from 'src/sticher/entities/sticher.entity';
 
 @Entity({ name: 'workingDetailWithTailor' })
-export class WorkingDetailWithTailor extends BaseEntity {
+export class WorkDetail extends BaseEntity {
   @Column()
   workingHoursPerDay: number;
   @Column({

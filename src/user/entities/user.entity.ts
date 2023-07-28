@@ -9,6 +9,7 @@ import { BaseEntity } from 'src/base.entity';
 import { Sticher } from 'src/sticher/entities/sticher.entity';
 import { Column, Entity, Index, OneToOne } from 'typeorm';
 import { UserStatus } from '../enum';
+import { Dresscutter } from 'src/dresscutter/entities/dresscutter.entity';
 
 @Entity()
 export class User extends BaseEntity {
@@ -57,4 +58,7 @@ export class User extends BaseEntity {
 
   @OneToOne(() => Sticher, (sticher) => sticher.user, { nullable: true })
   sticher: Sticher;
+
+  @OneToOne(() => Dresscutter, (dresscutter) => dresscutter.user)
+  dressCutter: Dresscutter;
 }

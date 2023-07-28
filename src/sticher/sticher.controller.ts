@@ -9,20 +9,19 @@ import {
   Post,
   Query,
   UseGuards,
-  HttpException,
 } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { AuthUser } from 'src/decorators';
+import { DressService } from 'src/dress/dress.service';
+import { TailorService } from 'src/tailor/tailor.service';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { User } from 'src/user/entities';
+import { UserService } from 'src/user/user.service';
 import { CreateSticherDto } from './dto/create-sticher.dto';
 import { UpdateSticherDto } from './dto/update-sticher.dto';
 import { SticherService } from './sticher.service';
-import { TailorService } from 'src/tailor/tailor.service';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { AuthUser } from 'src/decorators';
-import { Sticher } from './entities/sticher.entity';
-import { UserService } from 'src/user/user.service';
-import { UserStatus } from 'src/user/enum';
-import { DressService } from 'src/dress/dress.service';
+import { DressType } from 'src/dress/entities/dressType.entity';
+import { WorkdetailService } from 'src/workdetail/workdetail.service';
 
 @Controller('sticher')
 export class SticherController {
@@ -31,6 +30,7 @@ export class SticherController {
     private readonly tailorService: TailorService,
     private readonly userService: UserService,
     private readonly dressService: DressService,
+    private readonly workDetailService: WorkdetailService,
   ) {}
 
   @Post()
@@ -42,11 +42,9 @@ export class SticherController {
       createSticherDto.skills,
     );
 
-    const updatedSkills = dressType.map(({ type }) => type);
-
     return this.sticherService.create({
       ...createSticherDto,
-      skills: updatedSkills,
+      skills: dressType,
       user: createUserDto as User,
     });
   }
@@ -69,7 +67,7 @@ export class SticherController {
     }
 
     const tailor = await this.tailorService.findOne(+tailorId);
-    return await this.sticherService.addWorkingDetailWithTailor({
+    return await this.workDetailService.addWorkingDetailWithTailor({
       tailor,
       sticher,
       workingHoursPerDay,
@@ -138,8 +136,14 @@ export class SticherController {
     if (!skills) {
       throw new BadRequestException('Skills are Required!');
     }
-    const newSkillsList = skills.split(',');
-    return this.sticherService.updateSticherSkills(+user.id, newSkillsList);
+    const newSkillsList: any = skills.split(',');
+
+    const dressType = await this.dressService.findByGivenDressType(
+      newSkillsList,
+    );
+
+    const updatedSkills = dressType.map(({ type }) => type);
+    return this.sticherService.updateSticherSkills(+user.id, dressType);
   }
 
   @Get()
@@ -150,11 +154,6 @@ export class SticherController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.sticherService.findOne(+id);
-  }
-
-  @Get('workdetail/list')
-  getAllWorkdetails() {
-    return this.sticherService.getSticherWorkDetail();
   }
 
   @Patch(':id')

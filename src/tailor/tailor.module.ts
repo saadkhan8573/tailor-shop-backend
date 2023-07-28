@@ -9,6 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DayerModule } from 'src/dayer/dayer.module';
 import { EmbroiderModule } from 'src/embroider/embroider.module';
 import { SticherModule } from 'src/sticher/sticher.module';
+import { WorkdetailModule } from 'src/workdetail/workdetail.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { SticherModule } from 'src/sticher/sticher.module';
     forwardRef(() => SticherModule),
     UserModule,
     DayerModule,
+    WorkdetailModule,
   ],
   controllers: [TailorController],
   providers: [TailorService],

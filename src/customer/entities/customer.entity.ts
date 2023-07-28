@@ -1,5 +1,6 @@
 import { Dayer } from 'src/dayer/entities/dayer.entity';
 import { Dress } from 'src/dress/entities/dress.entity';
+import { Dresscutter } from 'src/dresscutter/entities/dresscutter.entity';
 import { Sticher } from 'src/sticher/entities/sticher.entity';
 import { Tailor } from 'src/tailor/entities';
 import { User } from 'src/user/entities';
@@ -54,4 +55,7 @@ export class Customer {
 
   @ManyToMany(() => Sticher, (sticher) => sticher.customer, { nullable: true })
   sticher: Sticher[];
+
+  @ManyToMany(() => Dresscutter, (dressCutter) => dressCutter.customer)
+  dressCutter: Dresscutter[];
 }

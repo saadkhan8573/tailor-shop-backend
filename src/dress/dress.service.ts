@@ -11,6 +11,7 @@ import { Dress } from './entities/dress.entity';
 import { DressType } from './entities/dressType.entity';
 import { DressStatusEnum, DyeStatusEnum } from './enum';
 import { CreateDressTypeDto } from './dto/create-dressType.dto';
+import { Sticher } from 'src/sticher/entities/sticher.entity';
 
 @Injectable()
 export class DressService {
@@ -128,18 +129,28 @@ export class DressService {
     id: number,
     tailorUserId: number,
     status: DressStatusEnum,
+    sticher: Sticher,
   ) {
     const dress = await this.dressRepository.findOne({
       where: { id, tailor: { user: { id: tailorUserId } } },
+      relations: ['dressType'],
     });
     if (!dress) {
       throw new BadRequestException('Dress Not Found');
     }
-
     if (dress.isSentForStiching) {
       throw new BadRequestException('Dress already sent for stiching');
     }
 
+    const isDressTypeExistInSkills = sticher.skills
+      .map(({ type }) => type)
+      .includes(dress.dressType.type);
+
+    if (!isDressTypeExistInSkills) {
+      throw new BadRequestException(
+        `Sticher has no ${dress.dressType.type} Skill, so it can,t be transfer`,
+      );
+    }
     dress.status = status;
     dress.isSentForStiching = true;
     const updatedDress = await this.dressRepository.update(id, dress);
@@ -262,10 +273,9 @@ export class DressService {
     return this.dressTypeRepository.find({ relations: ['dress'] });
   }
 
-  findByGivenDressType(dressTypes: string[]) {
+  findByGivenDressType(dressTypes: DressType[]) {
     return this.dressTypeRepository.find({
-      where: { type: In(dressTypes) },
-      select: { type: true },
+      where: { id: In(dressTypes) },
     });
   }
 

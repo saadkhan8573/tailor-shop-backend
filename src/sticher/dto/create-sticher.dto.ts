@@ -2,7 +2,8 @@ import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { Customer } from 'src/customer/entities/customer.entity';
 import { Tailor } from 'src/tailor/entities';
 import { User } from 'src/user/entities';
-import { WorkingDetailWithTailor } from '../entities/workDetail.entity';
+import { DressType } from 'src/dress/entities/dressType.entity';
+import { WorkDetail } from 'src/workdetail/entities/workdetail.entity';
 
 export class CreateSticherDto {
   @IsNotEmpty()
@@ -22,10 +23,10 @@ export class CreateSticherDto {
   dob: Date;
 
   @IsNotEmpty()
-  skills: string[];
+  skills: DressType[];
 
   @IsOptional()
-  workingDetailWithTailor: WorkingDetailWithTailor[];
+  workingDetailWithTailor: WorkDetail[];
 
   @IsOptional()
   customer: Customer[];
