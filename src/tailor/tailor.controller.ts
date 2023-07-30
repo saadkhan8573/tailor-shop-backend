@@ -30,6 +30,7 @@ import { TailorService } from './tailor.service';
 import { UserStatus } from 'src/user/enum';
 import { SticherService } from 'src/sticher/sticher.service';
 import { WorkdetailService } from 'src/workdetail/workdetail.service';
+import { DresscutterService } from 'src/dresscutter/dresscutter.service';
 
 @Controller('tailor')
 export class TailorController {
@@ -42,6 +43,7 @@ export class TailorController {
     private readonly customerService: CustomerService,
     private readonly embroiderService: EmbroiderService,
     private readonly workDetailService: WorkdetailService,
+    private readonly dressCutterService: DresscutterService,
   ) {}
 
   @Post()
@@ -365,6 +367,71 @@ export class TailorController {
       sticherWorkDetailId,
       +user.id,
     );
+    return workDetail;
+  }
+
+  @Patch('change-dress-cutter-status/work-detail')
+  @UseGuards(JwtAuthGuard)
+  async changeTailorWorkDetailStatus(
+    @AuthUser() user: User,
+    @Query()
+    { status, workDetailId }: { workDetailId: number; status: UserStatus },
+  ) {
+    if (!workDetailId) {
+      throw new BadRequestException('WorkDetail is required');
+    }
+
+    if (!status) {
+      throw new BadRequestException('Status is required');
+    }
+    const workDetail =
+      await this.workDetailService.changeTailorWorkDetailStatus(
+        +workDetailId,
+        +user.id,
+        status,
+      );
+
+    await this.tailorService.updateTailorDressCutterStatus(
+      +user?.id,
+      workDetail.dressCutter,
+      status,
+    );
+
+    return workDetail;
+  }
+
+  @Patch('send-dress-for-cutting/dress-cutter')
+  @UseGuards(JwtAuthGuard)
+  async sendDressForCutting(
+    @AuthUser() user: User,
+    @Query()
+    { dressId, workDetailId }: { dressId: number; workDetailId: number },
+  ) {
+    if (!workDetailId) {
+      throw new BadRequestException('Work Detail is required');
+    }
+
+    if (!dressId) {
+      throw new BadRequestException('Dress is required!');
+    }
+
+    const dress =
+      await this.dressService.finDressByTailorAndUpdateCuttingStatus(
+        +dressId,
+        +user.id,
+      );
+
+    const workDetail = await this.workDetailService.sendDressToDressCutter(
+      +workDetailId,
+      +user.id,
+      dress,
+    );
+
+    // await this.dressCutterService.sendDressForCuttingFromTailor(
+    //   workDetail.dressCutter,
+    //   dress,
+    // );
+
     return workDetail;
   }
 

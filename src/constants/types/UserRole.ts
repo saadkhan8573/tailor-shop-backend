@@ -5,4 +5,5 @@ export enum UserRole {
   Employee = 'employee',
   Customer = 'customer',
   Embroider = 'embroider',
+  DressCutter = 'dressCutter',
 }

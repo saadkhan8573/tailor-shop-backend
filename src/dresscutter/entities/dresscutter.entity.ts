@@ -1,9 +1,11 @@
 import { BaseEntity } from 'src/base.entity';
 import { Customer } from 'src/customer/entities/customer.entity';
 import { Dress } from 'src/dress/entities/dress.entity';
+import { DressType } from 'src/dress/entities/dressType.entity';
 import { Sticher } from 'src/sticher/entities/sticher.entity';
 import { Tailor } from 'src/tailor/entities';
 import { User } from 'src/user/entities';
+import { WorkDetail } from 'src/workdetail/entities/workdetail.entity';
 import {
   Column,
   Entity,
@@ -14,7 +16,7 @@ import {
   OneToOne,
 } from 'typeorm';
 
-@Entity()
+@Entity('dressCutter')
 export class Dresscutter extends BaseEntity {
   @Column()
   address: string;
@@ -24,6 +26,19 @@ export class Dresscutter extends BaseEntity {
 
   @Column()
   zip: string;
+
+  @Column()
+  dob: Date;
+
+  @Column()
+  gender: string;
+
+  @ManyToMany(() => DressType, (dressType) => dressType.dressCutter, {
+    onDelete: 'CASCADE',
+    cascade: ['insert', 'remove', 'update'],
+  })
+  @JoinTable()
+  skills: DressType[];
 
   @OneToOne(() => User, (user) => user.dressCutter, {
     onDelete: 'CASCADE',
@@ -53,10 +68,9 @@ export class Dresscutter extends BaseEntity {
   @JoinTable()
   customer: Customer[];
 
-  @OneToMany(() => Dress, (dress) => dress.dressCutter, {
-    onDelete: 'CASCADE',
-    cascade: ['insert', 'remove', 'update'],
-  })
-  @JoinColumn()
-  dress: Dress;
+  @OneToMany(() => Dress, (dress) => dress.dressCutter)
+  dress: Dress[];
+
+  @OneToMany(() => WorkDetail, (workDetail) => workDetail.dressCutter)
+  workDetail: WorkDetail[];
 }

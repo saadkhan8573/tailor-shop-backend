@@ -69,5 +69,5 @@ export class Tailor extends BaseEntity {
   workingDetailWithTailor: WorkDetail[];
 
   @ManyToMany(() => Dresscutter, (dressCutter) => dressCutter.tailor)
-  dressCutter: Dresscutter;
+  dressCutter: Dresscutter[];
 }

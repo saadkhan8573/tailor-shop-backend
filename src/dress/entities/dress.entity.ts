@@ -104,14 +104,30 @@ export class Dress extends BaseEntity {
   @Column('boolean', { nullable: true })
   isDressReturnedAfterStiching: boolean;
 
+  @Column('boolean', { nullable: true })
+  isSentForCutting: boolean;
+
+  @Column('boolean', { nullable: true })
+  isDressCutted: boolean;
+
+  @Column('boolean', { nullable: true })
+  isDressReturnedAfterCutting: boolean;
+
   @ManyToOne(() => Sticher, (sticher) => sticher.dress, { nullable: true })
   @JoinColumn()
   sticher: Sticher;
 
-  @ManyToOne(() => WorkDetail, (workDetail) => workDetail.dress)
+  @ManyToOne(() => WorkDetail, (workDetail) => workDetail.dress, {
+    onDelete: 'CASCADE',
+    cascade: true,
+  })
   @JoinColumn()
   workDetail: WorkDetail;
 
-  @ManyToOne(() => Dresscutter, (dressCutter) => dressCutter.dress)
+  @ManyToOne(() => Dresscutter, (dressCutter) => dressCutter.dress, {
+    onDelete: 'CASCADE',
+    cascade: true,
+  })
+  @JoinColumn()
   dressCutter: Dresscutter;
 }

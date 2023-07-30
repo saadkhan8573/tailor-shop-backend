@@ -4,6 +4,7 @@ import { UserStatus } from 'src/user/enum';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { Dress } from 'src/dress/entities/dress.entity';
 import { Sticher } from 'src/sticher/entities/sticher.entity';
+import { Dresscutter } from 'src/dresscutter/entities/dresscutter.entity';
 
 @Entity({ name: 'workingDetailWithTailor' })
 export class WorkDetail extends BaseEntity {
@@ -26,4 +27,11 @@ export class WorkDetail extends BaseEntity {
 
   @OneToMany(() => Dress, (dress) => dress.workDetail)
   dress: Dress[];
+
+  @ManyToOne(() => Dresscutter, (dressCutter) => dressCutter.workDetail, {
+    onDelete: 'CASCADE',
+    cascade: ['insert', 'remove', 'update'],
+  })
+  @JoinColumn()
+  dressCutter: Dresscutter;
 }

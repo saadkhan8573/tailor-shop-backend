@@ -10,6 +10,7 @@ import { DayerModule } from 'src/dayer/dayer.module';
 import { EmbroiderModule } from 'src/embroider/embroider.module';
 import { SticherModule } from 'src/sticher/sticher.module';
 import { WorkdetailModule } from 'src/workdetail/workdetail.module';
+import { DresscutterModule } from 'src/dresscutter/dresscutter.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { WorkdetailModule } from 'src/workdetail/workdetail.module';
     forwardRef(() => DressModule),
     forwardRef(() => EmbroiderModule),
     forwardRef(() => SticherModule),
+    forwardRef(() => DresscutterModule),
     UserModule,
     DayerModule,
     WorkdetailModule,

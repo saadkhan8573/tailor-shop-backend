@@ -1,3 +1,4 @@
+import { BaseEntity } from 'src/base.entity';
 import { Dayer } from 'src/dayer/entities/dayer.entity';
 import { Dress } from 'src/dress/entities/dress.entity';
 import { Dresscutter } from 'src/dresscutter/entities/dresscutter.entity';
@@ -15,10 +16,7 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class Customer {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class Customer extends BaseEntity {
   @Column()
   phone: string;
 

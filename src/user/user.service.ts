@@ -25,7 +25,7 @@ export class UserService {
 
   findAll() {
     return this.userRepository.find({
-      relations: ['tailor', 'customer', 'sticher', 'dayer'],
+      relations: ['tailor', 'customer', 'sticher', 'dayer', 'dressCutter'],
     });
   }
 

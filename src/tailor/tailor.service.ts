@@ -5,6 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Tailor } from './entities';
 import { Repository, In } from 'typeorm';
 import { Sticher } from 'src/sticher/entities/sticher.entity';
+import { Dresscutter } from 'src/dresscutter/entities/dresscutter.entity';
+import { UserStatus } from 'src/user/enum';
 
 @Injectable()
 export class TailorService {
@@ -39,6 +41,7 @@ export class TailorService {
         'user',
         'sticher',
         'dress',
+        'dressCutter',
         'workingDetailWithTailor.dress',
         'workingDetailWithTailor.sticher.user',
       ],
@@ -75,6 +78,32 @@ export class TailorService {
     tailor.sticher = tailor.sticher.filter(
       (sticher) => sticher.id !== sticherId,
     );
+
+    return this.tailorRepository.save(tailor);
+  }
+
+  async updateTailorDressCutterStatus(
+    tailorUserId: number,
+    dressCutter: Dresscutter,
+    status: UserStatus,
+  ) {
+    const tailor = await this.tailorRepository
+      .createQueryBuilder('tailor')
+      .leftJoin('tailor.user', 'user')
+      .where('user.id = :id', { id: tailorUserId })
+      .leftJoinAndSelect('tailor.dressCutter', 'dressCutter')
+      .getOne();
+
+    if (!tailor) {
+      throw new BadRequestException('Tailor Not Found');
+    }
+    status === UserStatus.APPROVED
+      ? tailor.dressCutter.push(dressCutter)
+      : [UserStatus.BLOCKED, UserStatus.REJECTED].includes(status)
+      ? (tailor.dressCutter = tailor.dressCutter.filter(
+          (dCutter) => dCutter.id !== dressCutter.id,
+        ))
+      : '';
 
     return this.tailorRepository.save(tailor);
   }

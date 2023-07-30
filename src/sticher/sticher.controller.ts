@@ -142,7 +142,6 @@ export class SticherController {
       newSkillsList,
     );
 
-    const updatedSkills = dressType.map(({ type }) => type);
     return this.sticherService.updateSticherSkills(+user.id, dressType);
   }
 

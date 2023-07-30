@@ -26,19 +26,16 @@ export class DressService {
   async create(createDressDto: CreateDressDto) {
     const dressType = await this.dressTypeRepository.findOne({
       where: { id: +createDressDto.dresstype },
-      relations: ['dress'],
     });
 
     if (!dressType) {
       throw new BadRequestException('DressType Not Found');
     }
 
-    const dress = await this.dressRepository.save(createDressDto);
-
-    if (dress) {
-      dressType.dress.push(dress);
-      return this.dressTypeRepository.save(dressType);
-    }
+    return this.dressRepository.save({
+      ...createDressDto,
+      dressType,
+    });
   }
 
   findAll() {
@@ -59,13 +56,21 @@ export class DressService {
   }
 
   findOne(id: number) {
-    return this.dressRepository.findOneBy({ id });
+    return this.dressRepository.findOne({
+      where: { id },
+      relations: ['dressType'],
+    });
   }
 
-  findOneByTailor(id: number, tailorId: number) {
-    return this.dressRepository.findOne({
+  async findOneByTailor(id: number, tailorId: number) {
+    const dress = await this.dressRepository.findOne({
       where: { id, tailor: { user: { id: tailorId } } },
+      relations: ['dressType'],
     });
+    if (!dress) {
+      throw new BadRequestException('Dress Not Found!');
+    }
+    return dress;
   }
 
   async transferDressForDye({
@@ -157,6 +162,13 @@ export class DressService {
     if (updatedDress) {
       return dress;
     }
+  }
+
+  async finDressByTailorAndUpdateCuttingStatus(
+    dressId: number,
+    tailorId: number,
+  ) {
+    return await this.findOneByTailor(dressId, tailorId);
   }
 
   changeDyeStatus(dress: Dress) {
