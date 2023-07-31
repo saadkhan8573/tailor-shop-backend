@@ -1,15 +1,15 @@
 import { BaseEntity } from 'src/base.entity';
 import { Customer } from 'src/customer/entities/customer.entity';
 import { Dayer } from 'src/dayer/entities/dayer.entity';
+import { Dresscutter } from 'src/dresscutter/entities/dresscutter.entity';
 import { Embroider } from 'src/embroider/entities';
 import { Sticher } from 'src/sticher/entities/sticher.entity';
 import { Tailor } from 'src/tailor/entities';
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
+import { WorkDetail } from 'src/workdetail/entities/workdetail.entity';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { DressStatusEnum, EmbroideryStatusEnum, PriorityEnum } from '../enum';
 import { DyeStatusEnum } from '../enum/DyeStatusEnum';
 import { DressType } from './dressType.entity';
-import { WorkDetail } from 'src/workdetail/entities/workdetail.entity';
-import { Dresscutter } from 'src/dresscutter/entities/dresscutter.entity';
 
 @Entity()
 export class Dress extends BaseEntity {
@@ -34,6 +34,9 @@ export class Dress extends BaseEntity {
     default: EmbroideryStatusEnum.NotSent,
   })
   embroideryStatus: EmbroideryStatusEnum;
+
+  @Column({ nullable: true })
+  isSentForEmbroidery: boolean;
 
   @Column('boolean', { default: false })
   isEmbroidered: boolean;

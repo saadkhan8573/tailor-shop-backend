@@ -1,21 +1,47 @@
 import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Dresscutter } from 'src/dresscutter/entities/dresscutter.entity';
+import { MailService } from 'src/mail/mail.service';
+import { Sticher } from 'src/sticher/entities/sticher.entity';
+import { UserStatus } from 'src/user/enum';
+import { In, Repository } from 'typeorm';
 import { CreateTailorDto } from './dto/create-tailor.dto';
 import { UpdateTailorDto } from './dto/update-tailor.dto';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Tailor } from './entities';
-import { Repository, In } from 'typeorm';
-import { Sticher } from 'src/sticher/entities/sticher.entity';
-import { Dresscutter } from 'src/dresscutter/entities/dresscutter.entity';
-import { UserStatus } from 'src/user/enum';
+import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class TailorService {
   constructor(
     @InjectRepository(Tailor)
     private readonly tailorRepository: Repository<Tailor>,
+    private readonly mailService: MailService,
+    private readonly authService: AuthService,
   ) {}
-  create(createTailorDto: CreateTailorDto) {
-    return this.tailorRepository.save(createTailorDto);
+  async create(createTailorDto: CreateTailorDto) {
+    const tailor = await this.tailorRepository.save(createTailorDto);
+
+    if (tailor) {
+      const payload = {
+        username: createTailorDto.user.username,
+        sub: createTailorDto.user.id,
+      };
+      const token = await this.authService.generateJWTToken(payload, {
+        expiresIn: '35s',
+      });
+      const url = `http://localhost:8001/user/verify/email/${token}`;
+
+      this.mailService.sendUserConfirmation({
+        ...createTailorDto.user,
+        subject: 'Confirm your Email on Tailor Shop',
+        template: 'email-confirmation',
+        context: {
+          name: tailor.user.name,
+          url: url,
+        },
+      });
+    }
+    return tailor;
   }
 
   findAll() {

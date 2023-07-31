@@ -23,7 +23,7 @@ export class CreateDresscutterDto {
   gender: string;
 
   @IsNotEmpty()
-  dressType: DressType[];
+  skills: DressType[];
 
   @IsOptional()
   user: User;

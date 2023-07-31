@@ -11,6 +11,7 @@ import {
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AuthService } from 'src/auth/auth.service';
 
 @Controller('user')
 export class UserController {
@@ -29,6 +30,11 @@ export class UserController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id);
+  }
+
+  @Patch('verify/email/:token')
+  async verifyUserEmailwithToken(@Param('token') token: string) {
+    return this.userService.verifyUserEmailwithToken(token);
   }
 
   @Patch(':id')

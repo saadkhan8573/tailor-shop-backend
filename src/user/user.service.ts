@@ -1,13 +1,21 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  forwardRef,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities';
-import { Repository } from 'typeorm';
+import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class UserService {
   constructor(
+    @Inject(forwardRef(() => AuthService))
+    private readonly authService: AuthService, // private readonly authService: AuthService,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) {}
   async create(createUserDto: CreateUserDto) {
@@ -57,6 +65,14 @@ export class UserService {
       where: { id },
       relations: ['tailor', 'customer', 'sticher'],
     });
+  }
+
+  async verifyUserEmailwithToken(token: string) {
+    const user = await this.authService.verifyJWTToken(token);
+    if (user) {
+      return 'Passes';
+    }
+    return 'Failed';
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {

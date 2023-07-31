@@ -20,17 +20,18 @@ import {
   DyeStatusEnum,
   EmbroideryStatusEnum,
 } from 'src/dress/enum';
+import { DresscutterService } from 'src/dresscutter/dresscutter.service';
 import { EmbroiderService } from 'src/embroider/embroider.service';
+import { SticherService } from 'src/sticher/sticher.service';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { User } from 'src/user/entities';
+import { UserStatus } from 'src/user/enum';
 import { UserService } from 'src/user/user.service';
+import { WorkdetailService } from 'src/workdetail/workdetail.service';
 import { CreateTailorDto } from './dto/create-tailor.dto';
 import { UpdateTailorDto } from './dto/update-tailor.dto';
 import { TailorService } from './tailor.service';
-import { UserStatus } from 'src/user/enum';
-import { SticherService } from 'src/sticher/sticher.service';
-import { WorkdetailService } from 'src/workdetail/workdetail.service';
-import { DresscutterService } from 'src/dresscutter/dresscutter.service';
+import { MailService } from 'src/mail/mail.service';
 
 @Controller('tailor')
 export class TailorController {
@@ -436,6 +437,7 @@ export class TailorController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
   findOne(@Param('id') id: string) {
     if (!id) {
       throw new BadRequestException('Tailor Does not exist or removed');

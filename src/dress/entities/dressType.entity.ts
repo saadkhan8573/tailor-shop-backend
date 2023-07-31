@@ -16,6 +16,10 @@ export class DressType extends BaseEntity {
   @JoinTable()
   sticher: Sticher;
 
-  @ManyToMany(() => Dresscutter, (dressCutter) => dressCutter.skills)
+  @ManyToMany(() => Dresscutter, (dressCutter) => dressCutter.skills, {
+    onDelete: 'CASCADE',
+    cascade: ['insert', 'remove', 'update'],
+  })
+  @JoinTable()
   dressCutter: Dresscutter[];
 }

@@ -156,6 +156,19 @@ export class DressService {
         `Sticher has no ${dress.dressType.type} Skill, so it can,t be transfer`,
       );
     }
+
+    if (dress.isSentForCutting) {
+      throw new BadRequestException('Dress Already sent for Cutting!');
+    }
+
+    if (dress.sentForDye) {
+      throw new BadRequestException('Dress already sent for Dye!');
+    }
+
+    if (dress.isSentForEmbroidery) {
+      throw new BadRequestException('Dress Sent For Emboroidery!');
+    }
+
     dress.status = status;
     dress.isSentForStiching = true;
     const updatedDress = await this.dressRepository.update(id, dress);

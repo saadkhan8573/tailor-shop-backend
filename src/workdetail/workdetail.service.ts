@@ -114,11 +114,30 @@ export class WorkdetailService {
     return sticherDetail;
   }
 
-  async sendDressCutterRequestToTailor(data: {
+  async sendDressCutterRequestToTailor({
+    dressCutterUserId,
+    ...data
+  }: {
+    dressCutterUserId: number;
     workingHoursPerDay: number;
     tailor: Tailor;
     dressCutter: Dresscutter;
   }) {
+    const workdetail = await this.workDetailRespository
+      .createQueryBuilder('workDetail')
+      .leftJoin('workDetail.tailor', 'tailor')
+      .leftJoin('workDetail.dressCutter', 'dressCutter')
+      .leftJoin('dressCutter.user', 'dressCutterUser')
+      .where('tailor.id = :tailorId', { tailorId: data.tailor.id })
+      .andWhere('dressCutterUser.id = :dressCutterUserId', {
+        dressCutterUserId,
+      })
+      .getOne();
+
+    if (workdetail) {
+      throw new BadRequestException('Request already sent!');
+    }
+
     return this.workDetailRespository.save(data);
   }
 

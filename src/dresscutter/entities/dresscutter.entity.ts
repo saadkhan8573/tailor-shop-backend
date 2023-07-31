@@ -33,11 +33,8 @@ export class Dresscutter extends BaseEntity {
   @Column()
   gender: string;
 
-  @ManyToMany(() => DressType, (dressType) => dressType.dressCutter, {
-    onDelete: 'CASCADE',
-    cascade: ['insert', 'remove', 'update'],
-  })
-  @JoinTable()
+  @ManyToMany(() => DressType, (dressType) => dressType.dressCutter)
+ 
   skills: DressType[];
 
   @OneToOne(() => User, (user) => user.dressCutter, {

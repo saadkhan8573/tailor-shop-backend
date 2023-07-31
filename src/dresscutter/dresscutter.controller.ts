@@ -32,12 +32,16 @@ export class DresscutterController {
   ) {}
 
   @Post()
-  create(
+  async create(
     @Body() createDresscutterDto: CreateDresscutterDto,
     @Body() cresteUserDto: CreateUserDto,
   ) {
+    const skills = await this.dressService.findByGivenDressType(
+      createDresscutterDto.skills,
+    );
     return this.dresscutterService.create({
       ...createDresscutterDto,
+      skills,
       user: cresteUserDto as User,
     });
   }
@@ -91,6 +95,7 @@ export class DresscutterController {
 
     const workDetail =
       await this.workDetailService.sendDressCutterRequestToTailor({
+        dressCutterUserId: +user.id,
         workingHoursPerDay,
         tailor,
         dressCutter,
@@ -117,6 +122,52 @@ export class DresscutterController {
     @Body() updateDresscutterDto: UpdateDresscutterDto,
   ) {
     return this.dresscutterService.update(+id, updateDresscutterDto);
+  }
+
+  @Patch('dress-cutter/remove-skills')
+  @UseGuards(JwtAuthGuard)
+  removeMySkills(@AuthUser() user: User, @Query('skills') skills: string) {
+    if (!skills) {
+      throw new BadRequestException('Skills are required to delete!');
+    }
+
+    const updatedSkills = skills ? skills?.split(',') : [];
+
+    return this.dresscutterService.removeMySkills(+user.id, updatedSkills);
+  }
+
+  @Get('find-my-dress/list')
+  @UseGuards(JwtAuthGuard)
+  async findMyDress(@AuthUser() user: User, @Query('dress') dress: string) {
+    const updatedDress = dress ? dress.split(',') : [];
+    return this.dresscutterService.findMyDress(+user.id, updatedDress);
+  }
+
+  @Get('filter-dress-cutter/list')
+  @UseGuards(JwtAuthGuard)
+  async filterDressCutter(
+    @Query()
+    {
+      sticher,
+      dress,
+      tailor,
+      customer,
+      skills,
+    }: {
+      sticher: number;
+      dress: number;
+      tailor: number;
+      customer: number;
+      skills: number;
+    },
+  ) {
+    return this.dresscutterService.filterDressCutter(
+      sticher,
+      dress,
+      tailor,
+      customer,
+      skills,
+    );
   }
 
   @Delete(':id')

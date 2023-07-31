@@ -12,6 +12,8 @@ import { Dayer } from './dayer/entities/dayer.entity';
 import { DressModule } from './dress/dress.module';
 import { Dress } from './dress/entities/dress.entity';
 import { DressType } from './dress/entities/dressType.entity';
+import { DresscutterModule } from './dresscutter/dresscutter.module';
+import { Dresscutter } from './dresscutter/entities/dresscutter.entity';
 import { EmbroiderModule } from './embroider/embroider.module';
 import { Embroider } from './embroider/entities';
 import { EmployeesModule } from './employees/employees.module';
@@ -24,8 +26,7 @@ import { User } from './user/entities';
 import { UserModule } from './user/user.module';
 import { WorkDetail } from './workdetail/entities/workdetail.entity';
 import { WorkdetailModule } from './workdetail/workdetail.module';
-import { DresscutterModule } from './dresscutter/dresscutter.module';
-import { Dresscutter } from './dresscutter/entities/dresscutter.entity';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { Dresscutter } from './dresscutter/entities/dresscutter.entity';
     }),
     AuthModule,
     UserModule,
+    MailModule,
     DayerModule,
     DressModule,
     TailorModule,
