@@ -23,7 +23,7 @@ import { SticherService } from './sticher.service';
 import { DressType } from 'src/dress/entities/dressType.entity';
 import { WorkdetailService } from 'src/workdetail/workdetail.service';
 
-@Controller('sticher')
+@Controller()
 export class SticherController {
   constructor(
     private readonly sticherService: SticherService,

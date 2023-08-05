@@ -1,34 +1,38 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseGuards,
-  Query,
   BadRequestException,
+  Body,
+  ConflictException,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { AuthUser } from 'src/decorators';
+import { DressService } from 'src/dress/dress.service';
+import { TailorService } from 'src/tailor/tailor.service';
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { User } from 'src/user/entities';
+import { WorkdetailService } from 'src/workdetail/workdetail.service';
 import { DresscutterService } from './dresscutter.service';
 import { CreateDresscutterDto } from './dto/create-dresscutter.dto';
 import { UpdateDresscutterDto } from './dto/update-dresscutter.dto';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
-import { User } from 'src/user/entities';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { AuthUser } from 'src/decorators';
-import { TailorService } from 'src/tailor/tailor.service';
-import { WorkdetailService } from 'src/workdetail/workdetail.service';
-import { DressService } from 'src/dress/dress.service';
+import { EmailVerificationGuard, UserApprovedStatusGaurd } from 'src/gaurds';
+import { UserService } from 'src/user/user.service';
 import { DressType } from 'src/dress/entities/dressType.entity';
 
-@Controller('dresscutter')
+@Controller()
 export class DresscutterController {
   constructor(
     private readonly dresscutterService: DresscutterService,
     private readonly tailorService: TailorService,
     private readonly workDetailService: WorkdetailService,
     private readonly dressService: DressService,
+    private readonly userService: UserService,
   ) {}
 
   @Post()
@@ -36,9 +40,28 @@ export class DresscutterController {
     @Body() createDresscutterDto: CreateDresscutterDto,
     @Body() cresteUserDto: CreateUserDto,
   ) {
-    const skills = await this.dressService.findByGivenDressType(
-      createDresscutterDto.skills,
+    // const skills = await this.dressService.findByGivenDressType(
+    //   createDresscutterDto.skills,
+    // );
+
+    const skills = createDresscutterDto.skills.map(
+      (skill) =>
+        ({
+          id: +skill,
+        } as DressType),
     );
+
+    const user = await this.userService.findByEmailAndUserName(
+      cresteUserDto.email,
+      cresteUserDto.username,
+    );
+
+    if (user) {
+      throw new BadRequestException(
+        'User with this email or username already exists.',
+      );
+    }
+
     return this.dresscutterService.create({
       ...createDresscutterDto,
       skills,
@@ -76,7 +99,7 @@ export class DresscutterController {
   }
 
   @Patch('send-work-request/tailor')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, EmailVerificationGuard, UserApprovedStatusGaurd)
   async sendWorkRequestToTailor(
     @AuthUser() user: User,
     @Query()

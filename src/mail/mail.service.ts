@@ -9,7 +9,7 @@ export class MailService {
   async sendUserConfirmation(mail: any) {
     // const url = `example.com/auth/confirm?token=${token}`;
 
-    await this.mailerService.sendMail({
+    return await this.mailerService.sendMail({
       to: mail.email,
       subject: mail.subject,
       template: mail.template, // `.hbs` extension is appended automatically

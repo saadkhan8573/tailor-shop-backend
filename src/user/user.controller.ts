@@ -1,19 +1,23 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
   BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
 } from '@nestjs/common';
-import { UserService } from './user.service';
+import { Query, UseGuards } from '@nestjs/common/decorators';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { AuthService } from 'src/auth/auth.service';
+import { UserService } from './user.service';
+import { AuthUser } from 'src/decorators';
+import { User } from './entities';
+import { UserStatus } from './enum';
 
-@Controller('user')
+@Controller()
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -35,6 +39,31 @@ export class UserController {
   @Patch('verify/email/:token')
   async verifyUserEmailwithToken(@Param('token') token: string) {
     return this.userService.verifyUserEmailwithToken(token);
+  }
+
+  @Patch('send-email-verification-token/email')
+  @UseGuards(JwtAuthGuard)
+  async sendEmailVerificationLink(@AuthUser() user: User) {
+    if (user.isEmailVerified) {
+      throw new BadRequestException('Your email is already verified!');
+    }
+    return this.userService.sendEmailVerificationLink(user);
+  }
+
+  @Patch('user-status/update')
+  @UseGuards(JwtAuthGuard)
+  async updateUserStatus(
+    @Query() { userId, status }: { userId: number; status: UserStatus },
+  ) {
+    if (!userId) {
+      throw new BadRequestException('User is required!');
+    }
+
+    if (!status) {
+      throw new BadRequestException('Status is required!');
+    }
+
+    return await this.userService.updateUserStatus(userId, status);
   }
 
   @Patch(':id')

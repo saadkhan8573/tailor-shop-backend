@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ConfigModule } from '@nestjs/config/dist';
+import { RouterModule } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -18,6 +19,7 @@ import { EmbroiderModule } from './embroider/embroider.module';
 import { Embroider } from './embroider/entities';
 import { EmployeesModule } from './employees/employees.module';
 import { Employee } from './employees/entities';
+import { MailModule } from './mail/mail.module';
 import { Sticher } from './sticher/entities/sticher.entity';
 import { SticherModule } from './sticher/sticher.module';
 import { Tailor } from './tailor/entities';
@@ -26,7 +28,6 @@ import { User } from './user/entities';
 import { UserModule } from './user/user.module';
 import { WorkDetail } from './workdetail/entities/workdetail.entity';
 import { WorkdetailModule } from './workdetail/workdetail.module';
-import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -69,6 +70,28 @@ import { MailModule } from './mail/mail.module';
     EmbroiderModule,
     WorkdetailModule,
     DresscutterModule,
+    RouterModule.register([
+      {
+        path: 'tailor',
+        module: TailorModule,
+      },
+      {
+        path: 'sticher',
+        module: SticherModule,
+      },
+      {
+        path: 'dresscutter',
+        module: DresscutterModule,
+      },
+      {
+        path: 'employees',
+        module: EmployeesModule,
+      },
+      {
+        path: 'user',
+        module: UserModule,
+      },
+    ]),
   ],
   controllers: [AppController],
   providers: [AppService],

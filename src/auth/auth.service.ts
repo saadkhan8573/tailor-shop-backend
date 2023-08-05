@@ -35,8 +35,8 @@ export class AuthService {
   async login(createAuthDto: CreateAuthDto) {
     const user = await this.userService.findByEmail(createAuthDto?.email);
     if (user && user.password === createAuthDto.password) {
-      const payload = { username: user.username, sub: user.id };
       const { password, ...userRest } = user;
+      const payload = { ...userRest, sub: user.id };
       return {
         ...userRest,
         assess_token: await this.generateJWTToken(payload),

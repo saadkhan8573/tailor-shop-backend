@@ -191,13 +191,15 @@ export class WorkdetailService {
     tailorUserId: number,
     dress: Dress,
   ) {
-    const workDetail = await this.workDetailRespository
+    const query = await this.workDetailRespository
       .createQueryBuilder('workDetail')
       .where('workDetail.id = :workDetailId', { workDetailId })
       .leftJoin('workDetail.tailor', 'tailor')
       .leftJoin('tailor.user', 'user')
       .andWhere('user.id = :tailorUserId', { tailorUserId })
-      .innerJoinAndSelect('workDetail.dressCutter', 'dressCutter')
+      .innerJoinAndSelect('workDetail.dressCutter', 'dressCutter');
+
+    const workDetail = await query
       .leftJoinAndSelect('dressCutter.dress', 'dress')
       .leftJoinAndSelect('workDetail.dress', 'workDetailDress')
       .getOne();
@@ -212,13 +214,7 @@ export class WorkdetailService {
       );
     }
 
-    const dressCutterSkills = await this.workDetailRespository
-      .createQueryBuilder('workDetail')
-      .where('workDetail.id = :workDetailId', { workDetailId })
-      .leftJoin('workDetail.tailor', 'tailor')
-      .leftJoin('tailor.user', 'user')
-      .andWhere('user.id = :tailorUserId', { tailorUserId })
-      .innerJoinAndSelect('workDetail.dressCutter', 'dressCutter')
+    const dressCutterSkills = await query
       .leftJoin('dressCutter.dress', 'dress')
       .leftJoin('workDetail.dress', 'workDetailDress')
       .leftJoinAndSelect('dressCutter.skills', 'skills')
@@ -229,13 +225,7 @@ export class WorkdetailService {
       throw new BadRequestException('Dress Cutter Skills Not Match');
     }
 
-    const isExistDress = await this.workDetailRespository
-      .createQueryBuilder('workDetail')
-      .where('workDetail.id = :workDetailId', { workDetailId })
-      .leftJoin('workDetail.tailor', 'tailor')
-      .leftJoin('tailor.user', 'user')
-      .andWhere('user.id = :tailorUserId', { tailorUserId })
-      .innerJoinAndSelect('workDetail.dressCutter', 'dressCutter')
+    const isExistDress = await query
       .leftJoin('dressCutter.dress', 'dress')
       .leftJoin('workDetail.dress', 'workDetailDress')
       .leftJoinAndSelect('dressCutter.skills', 'skills')
@@ -247,11 +237,6 @@ export class WorkdetailService {
       throw new BadRequestException('Dress already sent to Dress Cutter!');
     }
 
-    dress.isSentForCutting = true;
-    await this.dressService.create({
-      ...dress,
-      dresstype: dress.dressType.id,
-    } as any);
     workDetail.dress.push(dress);
     workDetail.dressCutter.dress.push(dress);
 

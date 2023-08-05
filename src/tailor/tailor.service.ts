@@ -9,6 +9,7 @@ import { CreateTailorDto } from './dto/create-tailor.dto';
 import { UpdateTailorDto } from './dto/update-tailor.dto';
 import { Tailor } from './entities';
 import { AuthService } from 'src/auth/auth.service';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class TailorService {
@@ -17,29 +18,13 @@ export class TailorService {
     private readonly tailorRepository: Repository<Tailor>,
     private readonly mailService: MailService,
     private readonly authService: AuthService,
+    private readonly userService: UserService,
   ) {}
   async create(createTailorDto: CreateTailorDto) {
     const tailor = await this.tailorRepository.save(createTailorDto);
 
     if (tailor) {
-      const payload = {
-        username: createTailorDto.user.username,
-        sub: createTailorDto.user.id,
-      };
-      const token = await this.authService.generateJWTToken(payload, {
-        expiresIn: '35s',
-      });
-      const url = `http://localhost:8001/user/verify/email/${token}`;
-
-      this.mailService.sendUserConfirmation({
-        ...createTailorDto.user,
-        subject: 'Confirm your Email on Tailor Shop',
-        template: 'email-confirmation',
-        context: {
-          name: tailor.user.name,
-          url: url,
-        },
-      });
+      await this.userService.sendEmailVerificationLink(tailor.user);
     }
     return tailor;
   }

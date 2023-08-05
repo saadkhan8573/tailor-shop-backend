@@ -17,7 +17,7 @@ import { User } from 'src/user/entities';
 import { UserService } from 'src/user/user.service';
 import { TailorService } from 'src/tailor/tailor.service';
 
-@Controller('employees')
+@Controller()
 export class EmployeesController {
   constructor(
     private readonly employeesService: EmployeesService,
@@ -36,7 +36,7 @@ export class EmployeesController {
     );
     return await this.employeesService.create({
       ...createEmployeeDto,
-      user : createUserDto as User,
+      user: createUserDto as User,
       tailor,
     });
   }

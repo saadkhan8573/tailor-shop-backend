@@ -24,6 +24,9 @@ export class User extends BaseEntity {
   @Index({ unique: true })
   username: string;
 
+  @Column({ nullable: true, default: false })
+  isEmailVerified: boolean;
+
   @Column()
   password: string;
 

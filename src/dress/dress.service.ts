@@ -40,7 +40,7 @@ export class DressService {
 
   findAll() {
     return this.dressRepository.find({
-      relations: ['tailor.user', 'customer', 'dressType'],
+      relations: ['tailor.user', 'customer', 'dressType', 'dressCutter'],
     });
   }
 
@@ -181,7 +181,9 @@ export class DressService {
     dressId: number,
     tailorId: number,
   ) {
-    return await this.findOneByTailor(dressId, tailorId);
+    const dress = await this.findOneByTailor(dressId, tailorId);
+    dress.isSentForCutting = true;
+    return this.dressRepository.save(dress);
   }
 
   changeDyeStatus(dress: Dress) {

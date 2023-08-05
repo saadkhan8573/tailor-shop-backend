@@ -6,12 +6,14 @@ import { DresscutterController } from './dresscutter.controller';
 import { DresscutterService } from './dresscutter.service';
 import { Dresscutter } from './entities/dresscutter.entity';
 import { DressModule } from 'src/dress/dress.module';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Dresscutter]),
     forwardRef(() => TailorModule),
     forwardRef(() => WorkdetailModule),
+    UserModule,
     DressModule,
   ],
   controllers: [DresscutterController],

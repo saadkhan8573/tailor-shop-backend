@@ -11,7 +11,7 @@ import { DressStatusEnum, EmbroideryStatusEnum, PriorityEnum } from '../enum';
 import { DyeStatusEnum } from '../enum/DyeStatusEnum';
 import { DressType } from './dressType.entity';
 
-@Entity()
+@Entity('dress')
 export class Dress extends BaseEntity {
   @ManyToOne(() => DressType, (dressType) => dressType.dress, {
     onDelete: 'CASCADE',

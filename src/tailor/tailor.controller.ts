@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { UserRole } from 'src/constants';
 import { CustomerService } from 'src/customer/customer.service';
 import { DayerService } from 'src/dayer/dayer.service';
 import { AuthUser } from 'src/decorators';
@@ -22,6 +23,9 @@ import {
 } from 'src/dress/enum';
 import { DresscutterService } from 'src/dresscutter/dresscutter.service';
 import { EmbroiderService } from 'src/embroider/embroider.service';
+import { EmailVerificationGuard, UserApprovedStatusGaurd } from 'src/gaurds';
+import { Roles, RolesGuard } from 'src/gaurds/RoleBaseGaurd.gaurd';
+import { UserId } from 'src/gaurds/setMetatdataForUserId.gaurd';
 import { SticherService } from 'src/sticher/sticher.service';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { User } from 'src/user/entities';
@@ -31,11 +35,14 @@ import { WorkdetailService } from 'src/workdetail/workdetail.service';
 import { CreateTailorDto } from './dto/create-tailor.dto';
 import { UpdateTailorDto } from './dto/update-tailor.dto';
 import { TailorService } from './tailor.service';
-import { MailService } from 'src/mail/mail.service';
+import { DataSource, Repository, Transaction } from 'typeorm';
+import { Dress } from 'src/dress/entities/dress.entity';
+import { WorkDetail } from 'src/workdetail/entities/workdetail.entity';
 
-@Controller('tailor')
+@Controller()
 export class TailorController {
   constructor(
+    private dataSource: DataSource,
     private readonly userService: UserService,
     private readonly dressService: DressService,
     private readonly dayerService: DayerService,
@@ -65,7 +72,10 @@ export class TailorController {
   }
 
   @Patch('transfer-dress/dye')
+  @UseGuards(UserApprovedStatusGaurd)
+  @UseGuards(EmailVerificationGuard)
   @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.Tailor)
   async transferDressForDye(
     @AuthUser() user: any,
     @Query() { dressId, dayerId }: { dressId: number; dayerId: number },
@@ -124,6 +134,8 @@ export class TailorController {
   }
 
   @Patch('transfer-dress/embroidery')
+  @UseGuards(UserApprovedStatusGaurd)
+  @UseGuards(EmailVerificationGuard)
   @UseGuards(JwtAuthGuard)
   async transferDressForEmbroidery(
     @AuthUser() user: any,
@@ -205,12 +217,16 @@ export class TailorController {
   }
 
   @Get('dress/find-for-dye-dress')
+  @UseGuards(UserApprovedStatusGaurd)
+  @UseGuards(EmailVerificationGuard)
   @UseGuards(JwtAuthGuard)
   findForDyeDress(@AuthUser() user: User) {
     return this.dressService.findForDyeDress(user?.id);
   }
 
   @Get('dress/find-by-dye-status')
+  @UseGuards(UserApprovedStatusGaurd)
+  @UseGuards(EmailVerificationGuard)
   @UseGuards(JwtAuthGuard)
   findByDyeStatus(
     @AuthUser() user: User,
@@ -223,12 +239,16 @@ export class TailorController {
   }
 
   @Get('dress/find-dress-for-dye/list')
+  @UseGuards(UserApprovedStatusGaurd)
+  @UseGuards(EmailVerificationGuard)
   @UseGuards(JwtAuthGuard)
   findDressForDyeList(@AuthUser() user: User, @Query('isDye') isDye: string) {
     return this.dressService.findDressForDyeList(user?.id, isDye);
   }
 
   @Get('dress/find-dress-for-embroidery/list')
+  @UseGuards(UserApprovedStatusGaurd)
+  @UseGuards(EmailVerificationGuard)
   @UseGuards(JwtAuthGuard)
   findDressForEmbroideryList(
     @AuthUser() user: User,
@@ -238,6 +258,8 @@ export class TailorController {
   }
 
   @Patch('dress/transfer-dress-for-stiching')
+  @UseGuards(UserApprovedStatusGaurd)
+  @UseGuards(EmailVerificationGuard)
   @UseGuards(JwtAuthGuard)
   async transferDressForStiching(
     @AuthUser() user: User,
@@ -257,6 +279,8 @@ export class TailorController {
   }
 
   @Get('find-customer-by-owner/list')
+  @UseGuards(UserApprovedStatusGaurd)
+  @UseGuards(EmailVerificationGuard)
   @UseGuards(JwtAuthGuard)
   async findCustomerByOwner(@AuthUser() user: any) {
     const isUser = await this.userService.findOne(+user.id);
@@ -269,8 +293,10 @@ export class TailorController {
   }
 
   @Get('find-dress-by-owner/list')
+  @UseGuards(UserApprovedStatusGaurd)
+  @UseGuards(EmailVerificationGuard)
   @UseGuards(JwtAuthGuard)
-  async findDressByOwner(@AuthUser() user: any) {
+  async findDressByOwner(@AuthUser() user: User) {
     const isUser = await this.userService.findOne(+user.id);
     if (!isUser) {
       throw new BadRequestException('User Not Found, Try Login');
@@ -280,6 +306,8 @@ export class TailorController {
   }
 
   @Get('find-customers-and-dress/list')
+  @UseGuards(UserApprovedStatusGaurd)
+  @UseGuards(EmailVerificationGuard)
   @UseGuards(JwtAuthGuard)
   async findCustomersAndDress(@AuthUser() user: any) {
     const isUser = await this.userService.findOne(+user.id);
@@ -307,6 +335,8 @@ export class TailorController {
   }
 
   @Patch('change-sticher-status/work-detail')
+  @UseGuards(UserApprovedStatusGaurd)
+  @UseGuards(EmailVerificationGuard)
   @UseGuards(JwtAuthGuard)
   async changeSticherWorkDetailStatus(
     @AuthUser() user: User,
@@ -335,6 +365,8 @@ export class TailorController {
   }
 
   @Patch('send-dress-for-stiching/sticher')
+  @UseGuards(UserApprovedStatusGaurd)
+  @UseGuards(EmailVerificationGuard)
   @UseGuards(JwtAuthGuard)
   async sendDressForStiching(
     @AuthUser() user: User,
@@ -372,6 +404,8 @@ export class TailorController {
   }
 
   @Patch('change-dress-cutter-status/work-detail')
+  @UseGuards(UserApprovedStatusGaurd)
+  @UseGuards(EmailVerificationGuard)
   @UseGuards(JwtAuthGuard)
   async changeTailorWorkDetailStatus(
     @AuthUser() user: User,
@@ -401,43 +435,73 @@ export class TailorController {
     return workDetail;
   }
 
+  // @Transaction()
   @Patch('send-dress-for-cutting/dress-cutter')
+  // @Roles(UserRole.Tailor)
   @UseGuards(JwtAuthGuard)
   async sendDressForCutting(
     @AuthUser() user: User,
     @Query()
     { dressId, workDetailId }: { dressId: number; workDetailId: number },
   ) {
-    if (!workDetailId) {
-      throw new BadRequestException('Work Detail is required');
-    }
+    let workDetail = null;
 
-    if (!dressId) {
-      throw new BadRequestException('Dress is required!');
-    }
+    // await this.dataSource.manager.transaction(
+    //   async (transactionalEntityManager) => {
+    //     await transactionalEntityManager.save(Dress);
+    //     // await transactionalEntityManager.save(WorkDetail);
+    //     // ...
+    //   },
+    // );
 
-    const dress =
-      await this.dressService.finDressByTailorAndUpdateCuttingStatus(
-        +dressId,
+    const queryRunner = this.dataSource.createQueryRunner();
+    const dress = await queryRunner.manager.find(Dress);
+    const workDetails = await queryRunner.manager.find(WorkDetail);
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      if (!workDetailId) {
+        throw new BadRequestException('Work Detail is required');
+      }
+
+      if (!dressId) {
+        throw new BadRequestException('Dress is required!');
+      }
+
+      const dress =
+        await this.dressService.finDressByTailorAndUpdateCuttingStatus(
+          +dressId,
+          +user.id,
+        );
+
+      workDetail = await this.workDetailService.sendDressToDressCutter(
+        +workDetailId,
         +user.id,
+        dress,
       );
 
-    const workDetail = await this.workDetailService.sendDressToDressCutter(
-      +workDetailId,
-      +user.id,
-      dress,
-    );
-
-    // await this.dressCutterService.sendDressForCuttingFromTailor(
-    //   workDetail.dressCutter,
-    //   dress,
-    // );
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
+    if (!workDetail) {
+      await queryRunner.rollbackTransaction();
+    }
 
     return workDetail;
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(AuthorizationGuard)
+  // @UseGuards(UserApprovedStatusGaurd)
+  // @UseGuards(EmailVerificationGuard)
+  // @UseGuards(JwtAuthGuard)
+  @UserId(JwtAuthGuard)
   findOne(@Param('id') id: string) {
     if (!id) {
       throw new BadRequestException('Tailor Does not exist or removed');
