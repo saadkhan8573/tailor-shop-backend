@@ -4,12 +4,18 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Param,
   Patch,
   Post,
   Query,
+  Res,
+  StreamableFile,
   UseGuards,
 } from '@nestjs/common';
+import { saveAs } from 'file-saver';
+
+import { ExportToCsv } from 'export-to-csv';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { UserRole } from 'src/constants';
 import { CustomerService } from 'src/customer/customer.service';
@@ -24,8 +30,7 @@ import {
 import { DresscutterService } from 'src/dresscutter/dresscutter.service';
 import { EmbroiderService } from 'src/embroider/embroider.service';
 import { EmailVerificationGuard, UserApprovedStatusGaurd } from 'src/gaurds';
-import { Roles, RolesGuard } from 'src/gaurds/RoleBaseGaurd.gaurd';
-import { UserId } from 'src/gaurds/setMetatdataForUserId.gaurd';
+import { Roles } from 'src/gaurds/RoleBaseGaurd.gaurd';
 import { SticherService } from 'src/sticher/sticher.service';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { User } from 'src/user/entities';
@@ -35,14 +40,15 @@ import { WorkdetailService } from 'src/workdetail/workdetail.service';
 import { CreateTailorDto } from './dto/create-tailor.dto';
 import { UpdateTailorDto } from './dto/update-tailor.dto';
 import { TailorService } from './tailor.service';
-import { DataSource, Repository, Transaction } from 'typeorm';
-import { Dress } from 'src/dress/entities/dress.entity';
-import { WorkDetail } from 'src/workdetail/entities/workdetail.entity';
+import { Paginate } from 'src/decorators/pagination.decorator';
+import { Pagination } from 'utils';
+import { createReadStream } from 'fs';
+import { join } from 'path';
 
 @Controller()
 export class TailorController {
   constructor(
-    private dataSource: DataSource,
+    // private dataSource: DataSource,
     private readonly userService: UserService,
     private readonly dressService: DressService,
     private readonly dayerService: DayerService,
@@ -274,7 +280,7 @@ export class TailorController {
   }
 
   @Get()
-  findAll() {
+  findAll(@Paginate() pagination: Pagination) {
     return this.tailorService.findAll();
   }
 
@@ -439,12 +445,67 @@ export class TailorController {
   @Patch('send-dress-for-cutting/dress-cutter')
   // @Roles(UserRole.Tailor)
   @UseGuards(JwtAuthGuard)
+  // @Header('Content-Type', 'application/csv')
+  // @Header('Content-Disposition', 'attachment; filename="package.csv"')
   async sendDressForCutting(
     @AuthUser() user: User,
     @Query()
     { dressId, workDetailId }: { dressId: number; workDetailId: number },
+    @Res() res: any,
   ) {
     let workDetail = null;
+
+    var data = [
+      {
+        name: 'Test 1',
+        age: 13,
+        average: 8.2,
+        approved: true,
+        description: "using 'Content here, content here' ",
+      },
+      {
+        name: 'Test 2',
+        age: 11,
+        average: 8.2,
+        approved: true,
+        description: "using 'Content here, content here' ",
+      },
+      {
+        name: 'Test 4',
+        age: 10,
+        average: 8.2,
+        approved: true,
+        description: "using 'Content here, content here' ",
+      },
+    ];
+
+    const options = {
+      fieldSeparator: ',',
+      quoteStrings: '"',
+      decimalSeparator: '.',
+      showLabels: true,
+      showTitle: true,
+      title: 'My Awesome CSV',
+      useTextFile: false,
+      useBom: true,
+      useKeysAsHeaders: true,
+      // headers: ['name'],
+      // headers: ['Column 1', 'Column 2', etc...] <-- Won't work with useKeysAsHeaders present!
+    };
+
+    const csvExporter = new ExportToCsv(options);
+
+    // await csvExporter.generateCsv(data);
+
+    const csv = csvExporter.generateCsv(data, true);
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=data.csv');
+    res.send(csv);
+    // const blob = new Blob([csv], { type: 'text/csv' });
+    // return saveAs(blob, 'filename.csv');
+    // return csv;
+    return new StreamableFile(csv);
 
     // await this.dataSource.manager.transaction(
     //   async (transactionalEntityManager) => {
@@ -454,12 +515,12 @@ export class TailorController {
     //   },
     // );
 
-    const queryRunner = this.dataSource.createQueryRunner();
-    const dress = await queryRunner.manager.find(Dress);
-    const workDetails = await queryRunner.manager.find(WorkDetail);
+    // const queryRunner = this.dataSource.createQueryRunner();
+    // const dress = await queryRunner.manager.find(Dress);
+    // const workDetails = await queryRunner.manager.find(WorkDetail);
 
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    // await queryRunner.connect();
+    // await queryRunner.startTransaction();
 
     try {
       if (!workDetailId) {
@@ -482,15 +543,15 @@ export class TailorController {
         dress,
       );
 
-      await queryRunner.commitTransaction();
+      // await queryRunner.commitTransaction();
     } catch (err) {
-      await queryRunner.rollbackTransaction();
+      // await queryRunner.rollbackTransaction();
       throw err;
     } finally {
-      await queryRunner.release();
+      // await queryRunner.release();
     }
     if (!workDetail) {
-      await queryRunner.rollbackTransaction();
+      // await queryRunner.rollbackTransaction();
     }
 
     return workDetail;
@@ -501,7 +562,7 @@ export class TailorController {
   // @UseGuards(UserApprovedStatusGaurd)
   // @UseGuards(EmailVerificationGuard)
   // @UseGuards(JwtAuthGuard)
-  @UserId(JwtAuthGuard)
+  // @UserId(JwtAuthGuard)
   findOne(@Param('id') id: string) {
     if (!id) {
       throw new BadRequestException('Tailor Does not exist or removed');

@@ -32,7 +32,11 @@ export class UserService {
     if (email) {
       throw new BadRequestException('Email already Exist!');
     }
-    return this.userRepository.save(createUserDto);
+    const user = await this.userRepository.save(createUserDto);
+    if (user) {
+      await this.sendEmailVerificationLink(user);
+    }
+    return user;
   }
 
   findAll() {
@@ -42,7 +46,6 @@ export class UserService {
   }
 
   async findByEmail(email: string) {
-    console.log('str', email);
     const user = await this.userRepository.findOneBy({
       email,
     });
@@ -133,6 +136,10 @@ export class UserService {
       .createQueryBuilder('user')
       .where('user.id = :id', { id: userId })
       .getOne();
+
+    if (!user) {
+      throw new BadRequestException('User Not found!');
+    }
 
     user.status = status;
 

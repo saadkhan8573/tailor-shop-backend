@@ -13,6 +13,8 @@ import { Dresscutter } from 'src/dresscutter/entities/dresscutter.entity';
 
 @Entity()
 export class User extends BaseEntity {
+  @Column({ nullable: true })
+  avatar: string;
   @Column()
   name: string;
 

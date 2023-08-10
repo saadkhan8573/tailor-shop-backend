@@ -7,12 +7,10 @@ import {
 import { Reflector } from '@nestjs/core';
 
 export function setDynamicMetadata(data: any) {
-  console.log('Chacha', data);
   return data?.id;
 }
 
 export const UserId = (id: any) => {
-  console.log('Saad', id);
   return SetMetadata('userid', id);
 };
 
@@ -22,7 +20,6 @@ export class RolesGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const roles = this.reflector.get<any>('userid', context.getHandler());
-    console.log(roles);
     // if (!roles) {
     //   return true;
     // }

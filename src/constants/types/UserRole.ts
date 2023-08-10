@@ -1,4 +1,5 @@
 export enum UserRole {
+  Admin = 'admin',
   Dayer = 'dayer',
   Tailor = 'tailor',
   Sticher = 'sticher',

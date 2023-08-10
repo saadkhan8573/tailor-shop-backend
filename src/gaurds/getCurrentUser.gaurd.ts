@@ -14,7 +14,6 @@ export class GetCurrentUserGaurd implements CanActivate {
     if (!request.user) {
       throw new UnauthorizedException('No User Was Found!');
     }
-    console.log('Leer');
     return request.user;
   }
 }

@@ -28,6 +28,7 @@ import { User } from './user/entities';
 import { UserModule } from './user/user.module';
 import { WorkDetail } from './workdetail/entities/workdetail.entity';
 import { WorkdetailModule } from './workdetail/workdetail.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -92,6 +93,7 @@ import { WorkdetailModule } from './workdetail/workdetail.module';
         module: UserModule,
       },
     ]),
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

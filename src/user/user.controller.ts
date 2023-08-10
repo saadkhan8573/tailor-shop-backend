@@ -16,6 +16,8 @@ import { UserService } from './user.service';
 import { AuthUser } from 'src/decorators';
 import { User } from './entities';
 import { UserStatus } from './enum';
+import { Roles } from 'src/gaurds/RoleBaseGaurd.gaurd';
+import { UserRole } from 'src/constants';
 
 @Controller()
 export class UserController {
@@ -52,6 +54,7 @@ export class UserController {
 
   @Patch('user-status/update')
   @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.Admin)
   async updateUserStatus(
     @Query() { userId, status }: { userId: number; status: UserStatus },
   ) {

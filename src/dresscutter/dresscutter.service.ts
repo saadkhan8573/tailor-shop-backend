@@ -1,4 +1,4 @@
-import { Repository, In } from 'typeorm';
+import { Repository, In, IsNull, Raw } from 'typeorm';
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Dresscutter } from './entities/dresscutter.entity';
@@ -7,6 +7,9 @@ import { UpdateDresscutterDto } from './dto/update-dresscutter.dto';
 import { TailorService } from 'src/tailor/tailor.service';
 import { Dress } from 'src/dress/entities/dress.entity';
 import { DressType } from 'src/dress/entities/dressType.entity';
+import { UserService } from 'src/user/user.service';
+import { UserStatus } from 'src/user/enum';
+import { PaginateResult, Pagination, getFilterValues } from 'utils';
 
 @Injectable()
 export class DresscutterService {
@@ -14,9 +17,18 @@ export class DresscutterService {
     @InjectRepository(Dresscutter)
     private readonly dressCutterRepository: Repository<Dresscutter>,
     private readonly tailorService: TailorService,
+    private readonly userService: UserService,
   ) {}
-  create(createDresscutterDto: CreateDresscutterDto) {
-    return this.dressCutterRepository.save(createDresscutterDto);
+  async create(createDresscutterDto: CreateDresscutterDto) {
+    const dressCutter = await this.dressCutterRepository.save(
+      createDresscutterDto,
+    );
+
+    if (dressCutter) {
+      await this.userService.sendEmailVerificationLink(dressCutter.user);
+    }
+
+    return dressCutter;
   }
 
   findAll() {
@@ -133,6 +145,85 @@ export class DresscutterService {
     }
 
     return filteredDressCutter.getMany();
+  }
+
+  async getDressCutterByWorkDetail(pagination: Pagination) {
+    const filters = getFilterValues(pagination);
+    const [list, count] = await this.dressCutterRepository.findAndCount({
+      where: {
+        user: {
+          name: filters.name,
+          email: filters.email,
+        },
+      },
+      relations: ['user'],
+      skip: pagination.skip,
+      take: pagination.limit,
+    });
+    const query = this.dressCutterRepository
+      .createQueryBuilder('dressCutter')
+      .leftJoinAndSelect('dressCutter.user', 'user');
+
+    // if (filters.name) {
+    //   query.where(Raw('user.name LIKE :name'), {
+    //     name: `%${getKey('name')}%`,
+    //   });
+    // }
+    // if (filters.email) {
+    //   query.where('user.email = :email', {
+    //     email: filters.email,
+    //   });
+    // }
+
+    const getFilterKey = (key) =>
+      pagination.search.find((s) => s.field === key).value;
+
+    const searchQuery = (key) => `LOWER(user[${key}]) ILike :${key}`;
+
+    if (filters.name) {
+      query.where(searchQuery('name'), {
+        name: `%${getFilterKey('name')}%`,
+      });
+    }
+    // if (filters.email) {
+    //   query.where('LOWER(user.email) LIKE :email', {
+    //     // email: filters.email,
+    //     email: `%${getKey('email').toLowerCase()}%`,
+    //   });
+    // }
+
+    // const [list, count] = await query
+    //   .take(pagination.limit)
+    //   .skip(pagination.skip)
+    //   .orderBy('dressCutter.createdAt', 'DESC')
+    //   .getManyAndCount();
+
+    return PaginateResult<Dresscutter>(
+      pagination.skip,
+      pagination.limit,
+      count,
+      list,
+    );
+    // return this.dressCutterRepository
+    //   .createQueryBuilder('dressCutter')
+    //   .leftJoinAndSelect('dressCutter.workDetail', 'workDetail')
+    //   .where('workDetail.status = :status OR workDetail.id IS NULL', {
+    //     status: UserStatus.APPROVED,
+    //   })
+    //   .getMany();
+    // return this.dressCutterRepository.find({
+    //   where: {
+    //     workDetail: [
+    //       {
+    //         status: Not(UserStatus.APPROVED),
+    //       },
+    //       {
+    //         id: IsNull(),
+    //       },
+    //     ],
+    //   },
+    //   relations: ['workDetail'],
+    // });
   }
 
   update(id: number, updateDresscutterDto: UpdateDresscutterDto) {

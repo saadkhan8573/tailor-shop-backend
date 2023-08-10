@@ -24,6 +24,8 @@ import { UpdateDresscutterDto } from './dto/update-dresscutter.dto';
 import { EmailVerificationGuard, UserApprovedStatusGaurd } from 'src/gaurds';
 import { UserService } from 'src/user/user.service';
 import { DressType } from 'src/dress/entities/dressType.entity';
+import { Roles } from 'src/gaurds/RoleBaseGaurd.gaurd';
+import { UserRole } from 'src/constants';
 
 @Controller()
 export class DresscutterController {
@@ -40,16 +42,13 @@ export class DresscutterController {
     @Body() createDresscutterDto: CreateDresscutterDto,
     @Body() cresteUserDto: CreateUserDto,
   ) {
-    // const skills = await this.dressService.findByGivenDressType(
-    //   createDresscutterDto.skills,
-    // );
-
-    const skills = createDresscutterDto.skills.map(
-      (skill) =>
-        ({
-          id: +skill,
-        } as DressType),
+    const skills = await this.dressService.findByGivenDressType(
+      createDresscutterDto.skills,
     );
+
+    if (!skills.length) {
+      throw new BadRequestException('Wrong skills selected!');
+    }
 
     const user = await this.userService.findByEmailAndUserName(
       cresteUserDto.email,
@@ -81,6 +80,7 @@ export class DresscutterController {
 
   @Patch('update-skills/dress-cutter')
   @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.DressCutter)
   async updateDressCutterSkills(
     @AuthUser() user: User,
     @Query('skills') skills: string,
@@ -100,6 +100,7 @@ export class DresscutterController {
 
   @Patch('send-work-request/tailor')
   @UseGuards(JwtAuthGuard, EmailVerificationGuard, UserApprovedStatusGaurd)
+  @Roles(UserRole.DressCutter)
   async sendWorkRequestToTailor(
     @AuthUser() user: User,
     @Query()
@@ -134,7 +135,8 @@ export class DresscutterController {
   }
 
   @Get('my-work/requests/approved')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, EmailVerificationGuard, UserApprovedStatusGaurd)
+  @Roles(UserRole.DressCutter)
   getMyApprovedWorkRequests(@AuthUser() user: User) {
     return this.workDetailService.getDressCutterApprovedWorkRequests(+user.id);
   }
@@ -148,7 +150,8 @@ export class DresscutterController {
   }
 
   @Patch('dress-cutter/remove-skills')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, EmailVerificationGuard, UserApprovedStatusGaurd)
+  @Roles(UserRole.DressCutter)
   removeMySkills(@AuthUser() user: User, @Query('skills') skills: string) {
     if (!skills) {
       throw new BadRequestException('Skills are required to delete!');
@@ -160,14 +163,16 @@ export class DresscutterController {
   }
 
   @Get('find-my-dress/list')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, EmailVerificationGuard, UserApprovedStatusGaurd)
+  @Roles(UserRole.DressCutter)
   async findMyDress(@AuthUser() user: User, @Query('dress') dress: string) {
     const updatedDress = dress ? dress.split(',') : [];
     return this.dresscutterService.findMyDress(+user.id, updatedDress);
   }
 
   @Get('filter-dress-cutter/list')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, EmailVerificationGuard, UserApprovedStatusGaurd)
+  @Roles(UserRole.DressCutter)
   async filterDressCutter(
     @Query()
     {
@@ -194,6 +199,8 @@ export class DresscutterController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, EmailVerificationGuard, UserApprovedStatusGaurd)
+  @Roles(UserRole.DressCutter)
   remove(@Param('id') id: string) {
     return this.dresscutterService.remove(+id);
   }

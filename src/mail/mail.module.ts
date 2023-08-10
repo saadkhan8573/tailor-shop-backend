@@ -24,7 +24,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
         from: 'saad.h4896@gmail.com',
       },
       template: {
-        dir: join(__dirname, '../templates'),
+        dir: join(__dirname, '../../templates'),
         adapter: new HandlebarsAdapter(), // or new PugAdapter() or new EjsAdapter()
         options: {
           strict: true,

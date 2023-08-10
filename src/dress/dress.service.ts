@@ -1,17 +1,17 @@
 import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DayerService } from 'src/dayer/dayer.service';
 import { Dayer } from 'src/dayer/entities/dayer.entity';
 import { EmbroiderService } from 'src/embroider/embroider.service';
 import { Embroider } from 'src/embroider/entities';
+import { Sticher } from 'src/sticher/entities/sticher.entity';
 import { In, Repository } from 'typeorm';
 import { CreateDressDto } from './dto/create-dress.dto';
 import { UpdateDressDto } from './dto/update-dress.dto';
 import { Dress } from './entities/dress.entity';
 import { DressType } from './entities/dressType.entity';
 import { DressStatusEnum, DyeStatusEnum } from './enum';
-import { CreateDressTypeDto } from './dto/create-dressType.dto';
-import { Sticher } from 'src/sticher/entities/sticher.entity';
 
 @Injectable()
 export class DressService {
@@ -22,6 +22,7 @@ export class DressService {
     private readonly dressTypeRepository: Repository<DressType>,
     private readonly dayerService: DayerService,
     private readonly embroiderService: EmbroiderService,
+    moduleRef: ModuleRef,
   ) {}
   async create(createDressDto: CreateDressDto) {
     const dressType = await this.dressTypeRepository.findOne({
@@ -295,6 +296,8 @@ export class DressService {
     dressType.forEach((dType) => {
       return this.dressTypeRepository.save({ type: dType });
     });
+
+    return 'Successfully Added';
   }
   getDressTypeList() {
     return this.dressTypeRepository.find({ relations: ['dress'] });

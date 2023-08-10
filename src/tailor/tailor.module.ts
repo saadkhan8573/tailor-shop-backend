@@ -12,6 +12,7 @@ import { Tailor } from './entities';
 import { TailorController } from './tailor.controller';
 import { TailorService } from './tailor.service';
 import { AuthModule } from 'src/auth/auth.module';
+import { DataSource } from 'typeorm';
 
 @Module({
   imports: [
